@@ -15,5 +15,5 @@ export const Media: CollectionConfig = {
       required: false,
     },
   ],
-  upload: true, // Gunakan config sederhana dulu
+  upload: true,
 }

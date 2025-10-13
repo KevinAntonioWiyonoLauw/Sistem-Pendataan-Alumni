@@ -165,44 +165,22 @@ export interface Media {
 export interface Alumnus {
   id: number;
   name: string;
-  nim: string;
   batch: number;
-  graduationYear?: number | null;
   email: string;
   phone?: string | null;
-  currentPosition?: string | null;
-  company?: string | null;
-  industry?:
-    | (
-        | 'software-dev'
-        | 'data-science'
-        | 'cybersecurity'
-        | 'game-dev'
-        | 'product-mgmt'
-        | 'consulting'
-        | 'academia'
-        | 'entrepreneurship'
-        | 'finance'
-        | 'healthcare'
-        | 'other'
-      )
-    | null;
+  currentStatus?: ('working' | 'studying' | 'entrepreneur' | 'freelancer' | 'job-seeking' | 'other') | null;
+  institution?: string | null;
+  position?: string | null;
   location?: {
     city?: string | null;
     country?: string | null;
   };
   linkedin?: string | null;
+  website?: string | null;
   photo?: (number | null) | Media;
-  bio?: string | null;
-  achievements?:
-    | {
-        title?: string | null;
-        year?: number | null;
-        description?: string | null;
-        id?: string | null;
-      }[]
-    | null;
   isPublic?: boolean | null;
+  source?: ('manual' | 'google-forms') | null;
+  googleFormsId?: string | null;
   updatedAt: string;
   createdAt: string;
 }
@@ -313,14 +291,12 @@ export interface MediaSelect<T extends boolean = true> {
  */
 export interface AlumniSelect<T extends boolean = true> {
   name?: T;
-  nim?: T;
   batch?: T;
-  graduationYear?: T;
   email?: T;
   phone?: T;
-  currentPosition?: T;
-  company?: T;
-  industry?: T;
+  currentStatus?: T;
+  institution?: T;
+  position?: T;
   location?:
     | T
     | {
@@ -328,17 +304,11 @@ export interface AlumniSelect<T extends boolean = true> {
         country?: T;
       };
   linkedin?: T;
+  website?: T;
   photo?: T;
-  bio?: T;
-  achievements?:
-    | T
-    | {
-        title?: T;
-        year?: T;
-        description?: T;
-        id?: T;
-      };
   isPublic?: T;
+  source?: T;
+  googleFormsId?: T;
   updatedAt?: T;
   createdAt?: T;
 }

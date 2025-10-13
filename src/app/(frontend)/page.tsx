@@ -18,12 +18,12 @@ export default function Home() {
             Lihat Daftar Alumni
           </Link>
 
-          <Link
+          {/* <Link
             href="/alumni/register"
             className="bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg inline-block"
           >
             Daftar Sebagai Alumni
-          </Link>
+          </Link> */}
 
           <Link
             href="/admin"

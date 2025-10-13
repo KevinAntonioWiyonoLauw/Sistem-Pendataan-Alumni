@@ -2,29 +2,82 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Image from 'next/image'
+
+interface AlumniFormData {
+  name: string
+  batch: string
+  email: string
+  phone: string
+  currentStatus: 'working' | 'studying' | 'entrepreneur' | 'freelancer' | 'job-seeking' | 'other'
+  institution: string
+  position: string
+  city: string
+  country: string
+  linkedin: string
+  website: string
+  isPublic: boolean
+}
+
+interface LocationData {
+  city: string | null
+  country: string
+}
+
+interface AlumniSubmitData {
+  name: string
+  batch: number
+  email: string
+  phone: string | null
+  currentStatus: 'working' | 'studying' | 'entrepreneur' | 'freelancer' | 'job-seeking' | 'other'
+  institution: string | null
+  position: string | null
+  location: LocationData
+  linkedin: string | null
+  website: string | null
+  photo: string | null
+  isPublic: boolean
+  source: 'manual'
+}
+
+interface MediaUploadResponse {
+  doc: {
+    id: string
+    alt: string
+    filename: string
+    mimeType: string
+    filesize: number
+    url: string
+  }
+  message?: string
+}
+
+interface ApiErrorResponse {
+  error: string
+  message?: string
+  details?: string
+}
 
 export default function AlumniForm() {
   const router = useRouter()
-  const [loading, setLoading] = useState(false)
-  const [message, setMessage] = useState('')
-  const [error, setError] = useState('')
+  const [loading, setLoading] = useState<boolean>(false)
+  const [message, setMessage] = useState<string>('')
+  const [error, setError] = useState<string>('')
   const [imagePreview, setImagePreview] = useState<string | null>(null)
-  const [selectedFile, setSelectedFile] = useState<File | null>(null) // Store file locally
+  const [selectedFile, setSelectedFile] = useState<File | null>(null)
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<AlumniFormData>({
     name: '',
-    nim: '',
     batch: '',
-    graduationYear: '',
     email: '',
     phone: '',
-    currentPosition: '',
-    company: '',
-    industry: '',
+    currentStatus: 'working',
+    institution: '',
+    position: '',
     city: '',
     country: 'Indonesia',
     linkedin: '',
-    bio: '',
+    website: '',
     isPublic: true,
   })
 
@@ -45,24 +98,20 @@ export default function AlumniForm() {
     const file = e.target.files?.[0]
     if (!file) return
 
-    // Validasi file
     if (!file.type.startsWith('image/')) {
       setError('File harus berupa gambar')
       return
     }
 
     if (file.size > 5 * 1024 * 1024) {
-      // 5MB
       setError('Ukuran file maksimal 5MB')
       return
     }
 
     setError('')
 
-    // Store file untuk upload nanti
     setSelectedFile(file)
 
-    // Buat preview menggunakan URL.createObjectURL
     const previewUrl = URL.createObjectURL(file)
     setImagePreview(previewUrl)
   }
@@ -70,7 +119,7 @@ export default function AlumniForm() {
   const removeImage = () => {
     setSelectedFile(null)
     if (imagePreview) {
-      URL.revokeObjectURL(imagePreview) // Clean up memory
+      URL.revokeObjectURL(imagePreview)
     }
     setImagePreview(null)
   }
@@ -79,7 +128,6 @@ export default function AlumniForm() {
     const formDataUpload = new FormData()
     formDataUpload.append('file', file)
 
-    // Tambahkan payload dengan alt text
     formDataUpload.append(
       '_payload',
       JSON.stringify({
@@ -93,42 +141,85 @@ export default function AlumniForm() {
     })
 
     if (!response.ok) {
-      const errorData = await response.json()
-      throw new Error(errorData.message || 'Gagal upload gambar')
+      const errorData: ApiErrorResponse = await response.json()
+      throw new Error(errorData.message || errorData.error || 'Gagal upload gambar')
     }
 
-    const result = await response.json()
-    return result.doc.id // Return photo ID
+    const result: MediaUploadResponse = await response.json()
+    return result.doc.id
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const validateForm = (): boolean => {
+    if (!formData.name.trim()) {
+      setError('Nama lengkap harus diisi')
+      return false
+    }
+
+    if (!formData.email.trim()) {
+      setError('Email harus diisi')
+      return false
+    }
+
+    if (!formData.batch.trim()) {
+      setError('Angkatan harus diisi')
+      return false
+    }
+
+    const batchNum = parseInt(formData.batch)
+    if (isNaN(batchNum) || batchNum < 2000 || batchNum > new Date().getFullYear()) {
+      setError('Angkatan tidak valid')
+      return false
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (!emailRegex.test(formData.email)) {
+      setError('Format email tidak valid')
+      return false
+    }
+
+    return true
+  }
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
     setLoading(true)
     setError('')
     setMessage('')
 
     try {
+      if (!validateForm()) {
+        return
+      }
+
       let photoId: string | null = null
 
-      // Upload image jika ada
       if (selectedFile) {
         try {
           photoId = await uploadImage(selectedFile)
-        } catch (uploadError: any) {
-          throw new Error(`Gagal upload gambar: ${uploadError.message}`)
+        } catch (uploadError) {
+          const errorMessage =
+            uploadError instanceof Error ? uploadError.message : 'Gagal upload gambar'
+          throw new Error(`Gagal upload gambar: ${errorMessage}`)
         }
       }
 
-      // Submit data alumni
-      const submitData = {
-        ...formData,
+      const submitData: AlumniSubmitData = {
+        name: formData.name.trim(),
         batch: parseInt(formData.batch),
-        graduationYear: formData.graduationYear ? parseInt(formData.graduationYear) : null,
+        email: formData.email.trim().toLowerCase(),
+        phone: formData.phone.trim() || null,
+        currentStatus: formData.currentStatus,
+        institution: formData.institution.trim() || null,
+        position: formData.position.trim() || null,
         location: {
-          city: formData.city,
-          country: formData.country,
+          city: formData.city.trim() || null,
+          country: formData.country.trim() || 'Indonesia',
         },
-        photo: photoId, // Kirim photo ID atau null
+        linkedin: formData.linkedin.trim() || null,
+        website: formData.website.trim() || null,
+        photo: photoId,
+        isPublic: formData.isPublic,
+        source: 'manual',
       }
 
       const response = await fetch('/api/alumni/register', {
@@ -139,12 +230,12 @@ export default function AlumniForm() {
         body: JSON.stringify(submitData),
       })
 
-      const result = await response.json()
-
       if (!response.ok) {
-        throw new Error(result.error || 'Terjadi kesalahan')
+        const errorResult: ApiErrorResponse = await response.json()
+        throw new Error(errorResult.error || errorResult.message || 'Terjadi kesalahan')
       }
 
+      await response.json()
       setMessage('Data alumni berhasil didaftarkan!')
 
       // Clean up
@@ -155,14 +246,15 @@ export default function AlumniForm() {
       setTimeout(() => {
         router.push('/alumni')
       }, 2000)
-    } catch (err: any) {
-      setError(err.message)
+    } catch (err) {
+      const errorMessage =
+        err instanceof Error ? err.message : 'Terjadi kesalahan yang tidak diketahui'
+      setError(errorMessage)
     } finally {
       setLoading(false)
     }
   }
 
-  // Clean up on component unmount
   useEffect(() => {
     return () => {
       if (imagePreview) {
@@ -194,11 +286,20 @@ export default function AlumniForm() {
 
           {imagePreview ? (
             <div className="flex items-center space-x-4">
-              <img
-                src={imagePreview}
-                alt="Preview"
-                className="w-24 h-24 rounded-full object-cover border-2 border-gray-300"
-              />
+              <div className="w-24 h-24 relative">
+                <Image
+                  src={imagePreview}
+                  alt="Preview foto profil"
+                  width={96}
+                  height={96}
+                  className="rounded-full object-cover border-2 border-gray-300"
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                  }}
+                  unoptimized
+                />
+              </div>
               <div>
                 <p className="text-sm text-gray-600 mb-2">
                   File siap diupload: {selectedFile?.name}
@@ -237,7 +338,6 @@ export default function AlumniForm() {
           )}
         </div>
 
-        {/* Nama Lengkap */}
         <div className="md:col-span-2">
           <label className="block text-sm font-medium text-gray-700 mb-2">Nama Lengkap *</label>
           <input
@@ -250,20 +350,6 @@ export default function AlumniForm() {
           />
         </div>
 
-        {/* NIM */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">NIM *</label>
-          <input
-            type="text"
-            name="nim"
-            value={formData.nim}
-            onChange={handleChange}
-            required
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Angkatan */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Angkatan *</label>
           <input
@@ -278,21 +364,6 @@ export default function AlumniForm() {
           />
         </div>
 
-        {/* Tahun Lulus */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Tahun Lulus</label>
-          <input
-            type="number"
-            name="graduationYear"
-            value={formData.graduationYear}
-            onChange={handleChange}
-            min="2004"
-            max={new Date().getFullYear() + 10}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Email */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Email *</label>
           <input
@@ -305,7 +376,6 @@ export default function AlumniForm() {
           />
         </div>
 
-        {/* No. Telepon */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">No. Telepon</label>
           <input
@@ -317,59 +387,50 @@ export default function AlumniForm() {
           />
         </div>
 
-        {/* Posisi Saat Ini */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Posisi/Jabatan Saat Ini
-          </label>
-          <input
-            type="text"
-            name="currentPosition"
-            value={formData.currentPosition}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Perusahaan */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">
-            Perusahaan/Organisasi
-          </label>
-          <input
-            type="text"
-            name="company"
-            value={formData.company}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-          />
-        </div>
-
-        {/* Bidang Industri */}
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Bidang Industri</label>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Status Saat Ini *</label>
           <select
-            name="industry"
-            value={formData.industry}
+            name="currentStatus"
+            value={formData.currentStatus}
             onChange={handleChange}
+            required
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
-            <option value="">Pilih Bidang</option>
-            <option value="software-dev">Software Development</option>
-            <option value="data-science">Data Science/AI</option>
-            <option value="cybersecurity">Cybersecurity</option>
-            <option value="game-dev">Game Development</option>
-            <option value="product-mgmt">Product Management</option>
-            <option value="consulting">Consulting</option>
-            <option value="academia">Academia/Research</option>
-            <option value="entrepreneurship">Entrepreneurship</option>
-            <option value="finance">Finance/Fintech</option>
-            <option value="healthcare">Healthcare/Medtech</option>
-            <option value="other">Other</option>
+            <option value="working">Bekerja</option>
+            <option value="studying">Kuliah Lanjutan</option>
+            <option value="entrepreneur">Entrepreneur</option>
+            <option value="freelancer">Freelancer</option>
+            <option value="job-seeking">Mencari Kerja</option>
+            <option value="other">Lainnya</option>
           </select>
         </div>
 
-        {/* Kota */}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Instansi/Tempat Kerja/Kampus
+          </label>
+          <input
+            type="text"
+            name="institution"
+            value={formData.institution}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">
+            Posisi/Jabatan/Bidang Studi
+          </label>
+          <input
+            type="text"
+            name="position"
+            value={formData.position}
+            onChange={handleChange}
+            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+          />
+        </div>
+
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Kota</label>
           <input
@@ -381,7 +442,6 @@ export default function AlumniForm() {
           />
         </div>
 
-        {/* Negara */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-2">Negara</label>
           <input
@@ -393,9 +453,8 @@ export default function AlumniForm() {
           />
         </div>
 
-        {/* LinkedIn */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn Profile</label>
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">LinkedIn</label>
           <input
             type="url"
             name="linkedin"
@@ -406,22 +465,18 @@ export default function AlumniForm() {
           />
         </div>
 
-        {/* Bio */}
-        <div className="md:col-span-2">
-          <label className="block text-sm font-medium text-gray-700 mb-2">Bio Singkat</label>
-          <textarea
-            name="bio"
-            value={formData.bio}
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-2">Website/GitHub</label>
+          <input
+            type="url"
+            name="website"
+            value={formData.website}
             onChange={handleChange}
-            maxLength={500}
-            rows={4}
+            placeholder="https://github.com/username atau website pribadi"
             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            placeholder="Ceritakan sedikit tentang diri Anda..."
           />
-          <p className="text-sm text-gray-500 mt-1">{formData.bio.length}/500 karakter</p>
         </div>
 
-        {/* Tampilkan di Website */}
         <div className="md:col-span-2">
           <label className="flex items-center">
             <input
@@ -457,12 +512,12 @@ export default function AlumniForm() {
                   r="10"
                   stroke="currentColor"
                   strokeWidth="4"
-                ></circle>
+                />
                 <path
                   className="opacity-75"
                   fill="currentColor"
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                ></path>
+                />
               </svg>
               {selectedFile ? 'Mengupload foto & mendaftarkan...' : 'Mendaftarkan...'}
             </span>

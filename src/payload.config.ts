@@ -18,6 +18,11 @@ export default buildConfig({
     importMap: {
       baseDir: path.resolve(dirname),
     },
+    components: {
+      logout: {
+        Button: './components/AdminLogoutButton',
+      },
+    },
   },
   upload: {
     limits: {
