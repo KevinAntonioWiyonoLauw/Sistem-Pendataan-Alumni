@@ -1,4 +1,4 @@
-import AlumniForm from '@/app/(frontend)/components/AlumniForm/AlumniForm'
+import AlumniForm from '@/components/AlumniForm/AlumniForm'
 
 export const metadata = {
   title: 'Daftar Alumni - Computer Science UGM',
