@@ -16,6 +16,8 @@ interface ImportResults {
   created: number
   updated: number
   errors: string[]
+  usersCreated: number
+  userErrors: string[]
   photoResults: {
     success: number
     failed: number
@@ -227,6 +229,52 @@ function parseSpreadsheetRow(row: string[]): SpreadsheetRow {
   }
 }
 
+async function createUserForAlumni(
+  email: string,
+  name: string,
+  alumniId: string,
+  payload: Payload,
+): Promise<{ success: boolean; message: string }> {
+  try {
+    // Check if user already exists
+    const existingUser = await payload.find({
+      collection: 'users',
+      where: {
+        email: {
+          equals: email.toLowerCase(),
+        },
+      },
+    })
+
+    if (existingUser.docs.length > 0) {
+      console.log(`👤 User already exists for: ${name}`)
+      return { success: true, message: 'User already exists' }
+    }
+
+    // Create user without password
+    const userPayload = {
+      email: email.toLowerCase(),
+      name: name,
+      roles: ['alumni'] as ('admin' | 'alumni')[],
+      alumniId: parseInt(alumniId),
+      hasPassword: false,
+      // No password field - user needs to create password later
+    }
+
+    await payload.create({
+      collection: 'users',
+      data: userPayload,
+    })
+
+    console.log(`✅ Created user without password for: ${name}`)
+    return { success: true, message: 'User created successfully' }
+  } catch (userError: unknown) {
+    const errorMessage = userError instanceof Error ? userError.message : 'Unknown error'
+    console.error(`❌ Error creating user for ${name}:`, errorMessage)
+    return { success: false, message: errorMessage }
+  }
+}
+
 export async function POST() {
   try {
     const payload = await getPayloadHMR({ config: configPromise })
@@ -245,6 +293,8 @@ export async function POST() {
       created: 0,
       updated: 0,
       errors: [],
+      usersCreated: 0,
+      userErrors: [],
       photoResults: {
         success: 0,
         failed: 0,
@@ -362,6 +412,19 @@ export async function POST() {
           })
           results.updated++
           console.log(`✅ Updated: ${rowData.name}`)
+
+          // Try to create user for existing alumni if not exists
+          const userResult = await createUserForAlumni(
+            rowData.email,
+            rowData.name,
+            existingAlumni.id.toString(),
+            payload,
+          )
+          if (userResult.success && userResult.message === 'User created successfully') {
+            results.usersCreated++
+          } else if (!userResult.success) {
+            results.userErrors.push(`${rowData.name}: ${userResult.message}`)
+          }
         } else {
           const createData: AlumniCreateData = {
             name: rowData.name,
@@ -387,6 +450,19 @@ export async function POST() {
           existingAlumniCache.set(rowData.email, newAlumni)
           results.created++
           console.log(`✅ Created: ${rowData.name}`)
+
+          // Create user without password for new alumni
+          const userResult = await createUserForAlumni(
+            rowData.email,
+            rowData.name,
+            newAlumni.id.toString(),
+            payload,
+          )
+          if (userResult.success && userResult.message === 'User created successfully') {
+            results.usersCreated++
+          } else if (!userResult.success) {
+            results.userErrors.push(`${rowData.name}: ${userResult.message}`)
+          }
         }
 
         results.processed++
@@ -410,10 +486,14 @@ export async function POST() {
           results.photoResults.skipped > 0
             ? `Saved ${results.photoResults.skipped} downloads`
             : 'All new downloads',
+        usersCreated: results.usersCreated,
+        userErrorsCount: results.userErrors.length,
       },
     }
 
     console.log('\n✅ Import completed!', summary)
+    console.log(`👤 Users created: ${results.usersCreated}`)
+    console.log(`❌ User creation errors: ${results.userErrors.length}`)
 
     return NextResponse.json(summary)
   } catch (error) {

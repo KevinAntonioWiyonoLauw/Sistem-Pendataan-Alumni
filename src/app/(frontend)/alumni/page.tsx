@@ -1,169 +1,268 @@
-import React from 'react'
+'use client'
+
+import { useState, useEffect, useCallback } from 'react' // ✅ Import useCallback
 import Link from 'next/link'
 import Image from 'next/image'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
-import configPromise from '@payload-config'
-import { Alumnus } from '@/payload-types'
+import AlumniFilter from '@/components/alumni/AlumniFilter'
+import { useAuth } from '@/lib/useAuth'
 
-export default async function AlumniPage() {
-  const payload = await getPayloadHMR({ config: configPromise })
-
-  const alumni = await payload.find({
-    collection: 'alumni',
-    where: {
-      isPublic: {
-        equals: true,
-      },
-    },
-    sort: '-batch',
-    limit: 100,
-  })
-
-  const getStatusLabel = (status: string): string => {
-    const statusMap: Record<string, string> = {
-      working: 'Bekerja',
-      studying: 'Studi Lanjut',
-      entrepreneur: 'Wirausaha',
-      freelancer: 'Freelancer',
-      'job-seeking': 'Mencari Kerja',
-      other: 'Lainnya',
-    }
-    return statusMap[status] || status
+interface Alumni {
+  id: string
+  name: string
+  batch: number
+  currentStatus: string
+  institution?: string
+  position?: string
+  location?: {
+    city?: string
+    country?: string
   }
+  photo?: {
+    url: string
+    alt: string
+  }
+}
 
-  const getStatusColor = (status: string): string => {
-    const colorMap: Record<string, string> = {
-      working: 'bg-green-100 text-green-800',
-      studying: 'bg-blue-100 text-blue-800',
-      entrepreneur: 'bg-purple-100 text-purple-800',
-      freelancer: 'bg-yellow-100 text-yellow-800',
-      'job-seeking': 'bg-orange-100 text-orange-800',
-      other: 'bg-gray-100 text-gray-800',
+export default function AlumniDirectoryPage() {
+  const [alumni, setAlumni] = useState<Alumni[]>([])
+  const [batches, setBatches] = useState<string[]>([])
+  const [cities, setCities] = useState<string[]>([])
+  const [institutions, setInstitutions] = useState<string[]>([])
+  const [positions, setPositions] = useState<string[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState('')
+  const [initialized, setInitialized] = useState(false) // ✅ Track initialization
+
+  const { authenticated, user, loading: authLoading } = useAuth()
+
+  // ✅ PERBAIKAN: Stabilkan fetchFilterOptions dengan useCallback
+  const fetchFilterOptions = useCallback(async () => {
+    try {
+      const response = await fetch('/api/alumni/filter')
+      if (response.ok) {
+        const data = await response.json()
+        const alumniData: Alumni[] = data.alumni || []
+
+        const batchNumbers = alumniData
+          .map((a) => a.batch)
+          .filter((batch): batch is number => typeof batch === 'number')
+
+        const cityNames = alumniData
+          .map((a) => a.location?.city)
+          .filter((city): city is string => typeof city === 'string' && city.trim() !== '')
+
+        const institutionNames = alumniData
+          .map((a) => a.institution)
+          .filter(
+            (institution): institution is string =>
+              typeof institution === 'string' && institution.trim() !== '',
+          )
+
+        const positionNames = alumniData
+          .map((a) => a.position)
+          .filter(
+            (position): position is string =>
+              typeof position === 'string' && position.trim() !== '',
+          )
+
+        const uniqueBatches = [...new Set(batchNumbers)]
+          .map(String)
+          .sort((a, b) => parseInt(b) - parseInt(a))
+        const uniqueCities = [...new Set(cityNames)].sort()
+        const uniqueInstitutions = [...new Set(institutionNames)].sort()
+        const uniquePositions = [...new Set(positionNames)].sort()
+
+        setBatches(uniqueBatches)
+        setCities(uniqueCities)
+        setInstitutions(uniqueInstitutions)
+        setPositions(uniquePositions)
+      }
+    } catch (err) {
+      console.warn('Could not fetch filter options:', err)
     }
-    return colorMap[status] || 'bg-gray-100 text-gray-800'
+  }, [])
+
+  // ✅ PERBAIKAN: Stabilkan fetchAlumni dengan useCallback
+  const fetchAlumni = useCallback(
+    async (filters = {}) => {
+      // ✅ Jangan set loading jika hanya filter change
+      if (!initialized) {
+        setLoading(true)
+      }
+
+      try {
+        const cleanFilters = Object.fromEntries(
+          Object.entries(filters).filter(([_, value]) => value !== ''),
+        )
+
+        const params = new URLSearchParams(cleanFilters as Record<string, string>)
+        const response = await fetch(`/api/alumni/filter?${params}`)
+
+        if (response.ok) {
+          const data = await response.json()
+          setAlumni(data.alumni || [])
+          setError('')
+        } else {
+          setError('Gagal memuat data alumni')
+        }
+      } catch (err) {
+        console.error('Error fetching alumni:', err)
+        setError('Terjadi kesalahan saat memuat data')
+      } finally {
+        if (!initialized) {
+          setLoading(false)
+          setInitialized(true) // ✅ Mark as initialized
+        }
+      }
+    },
+    [initialized],
+  )
+
+  // ✅ PERBAIKAN: Hanya run sekali saat mount
+  useEffect(() => {
+    if (!initialized) {
+      const initializeData = async () => {
+        await fetchFilterOptions()
+        await fetchAlumni()
+      }
+
+      initializeData()
+    }
+  }, [initialized, fetchFilterOptions, fetchAlumni])
+
+  // ✅ Show loading hanya saat initial load
+  if ((loading && !initialized) || authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="max-w-6xl mx-auto px-4">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
+            <p className="mt-4 text-gray-600">Loading...</p>
+          </div>
+        </div>
+      </div>
+    )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-50 py-8">
+      <div className="max-w-6xl mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-4xl font-bold text-gray-900 mb-2">Alumni Computer Science UGM</h1>
-            <p className="text-gray-600">Total: {alumni.docs.length} alumni terdaftar</p>
-          </div>
-          <div className="flex gap-4">
-            <Link
-              href="/admin"
-              className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg transition-colors"
-            >
-              Admin Panel
-            </Link>
+          <h1 className="text-3xl font-bold text-gray-900">Direktori Alumni</h1>
+
+          <div className="space-x-4">
+            {authenticated ? (
+              <>
+                <span className="text-gray-700">Halo, {user?.name || user?.email}</span>
+                <Link
+                  href="/alumni/dashboard"
+                  className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                >
+                  Dashboard
+                </Link>
+                <button
+                  onClick={async () => {
+                    try {
+                      await fetch('/api/auth/logout', {
+                        method: 'POST',
+                        credentials: 'include',
+                      })
+                      window.location.href = '/' // ✅ Better redirect
+                    } catch (error) {
+                      console.error('Logout error:', error)
+                    }
+                  }}
+                  className="bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  href="/alumni/register"
+                  className="bg-green-600 text-white px-4 py-2 rounded-md hover:bg-green-700"
+                >
+                  Register
+                </Link>
+                <Link
+                  href="/login"
+                  className="bg-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700"
+                >
+                  Login
+                </Link>
+              </>
+            )}
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-          {alumni.docs.map((alumnus: Alumnus) => (
-            <div
-              key={alumnus.id}
-              className="bg-white shadow-lg rounded-lg p-6 hover:shadow-xl transition-shadow"
-            >
-              {alumnus.photo && typeof alumnus.photo === 'object' && alumnus.photo.url && (
-                <div className="w-24 h-24 mx-auto mb-4 relative">
+        {/* ✅ AlumniFilter dengan stable function */}
+        <AlumniFilter
+          onFilterChange={fetchAlumni}
+          batches={batches}
+          cities={cities}
+          institutions={institutions}
+          positions={positions}
+          loading={false} // ✅ Jangan pass loading state untuk filter
+        />
+
+        {error && (
+          <div className="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded">
+            {error}
+          </div>
+        )}
+
+        {/* Alumni Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {alumni.map((person) => (
+            <div key={person.id} className="bg-white rounded-lg shadow-md p-6">
+              <div className="flex items-center space-x-4">
+                {person.photo?.url ? (
                   <Image
-                    src={alumnus.photo.url}
-                    alt={`Foto profil ${alumnus.name}`}
-                    width={96}
-                    height={96}
-                    className="rounded-full object-cover border-4 border-gray-100"
-                    style={{
-                      width: '100%',
-                      height: '100%',
-                    }}
-                    unoptimized
-                    priority={false}
+                    src={person.photo.url}
+                    alt={person.photo.alt}
+                    width={64}
+                    height={64}
+                    className="rounded-full object-cover"
                   />
-                </div>
-              )}
-
-              <h3 className="text-xl font-semibold text-center mb-2 text-gray-900">
-                {alumnus.name}
-              </h3>
-
-              <div className="text-center mb-4">
-                <p className="text-gray-600 font-medium">Angkatan {alumnus.batch}</p>
-                {alumnus.currentStatus && (
-                  <span
-                    className={`inline-block text-sm px-3 py-1 rounded-full mt-2 ${getStatusColor(alumnus.currentStatus)}`}
-                  >
-                    {getStatusLabel(alumnus.currentStatus)}
-                  </span>
+                ) : (
+                  <div className="w-16 h-16 bg-gray-300 rounded-full flex items-center justify-center">
+                    <span className="text-gray-600 text-lg font-semibold">
+                      {person.name.charAt(0)}
+                    </span>
+                  </div>
                 )}
+
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">{person.name}</h3>
+                  <p className="text-gray-600">Angkatan {person.batch}</p>
+                </div>
               </div>
 
-              {alumnus.position && (
-                <p className="text-center font-medium mb-2 text-gray-800">{alumnus.position}</p>
-              )}
-
-              {alumnus.institution && (
-                <p className="text-center text-gray-700 mb-2 text-sm">{alumnus.institution}</p>
-              )}
-
-              {alumnus.location && (alumnus.location.city || alumnus.location.country) && (
-                <p className="text-center text-gray-600 mb-4 text-sm">
-                  📍 {[alumnus.location.city, alumnus.location.country].filter(Boolean).join(', ')}
-                </p>
-              )}
-
-              <div className="flex justify-center space-x-3">
-                {alumnus.linkedin && (
-                  <a
-                    href={alumnus.linkedin}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 text-sm font-medium"
-                  >
-                    LinkedIn
-                  </a>
+              <div className="mt-4 space-y-2">
+                {person.position && person.institution && (
+                  <p className="text-sm text-gray-700">
+                    {person.position} di {person.institution}
+                  </p>
                 )}
-                {alumnus.website && (
-                  <a
-                    href={alumnus.website}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-green-600 hover:text-green-800 text-sm font-medium"
-                  >
-                    Website
-                  </a>
+
+                {person.location?.city && (
+                  <p className="text-sm text-gray-600">
+                    📍 {person.location.city}, {person.location.country || 'Indonesia'}
+                  </p>
                 )}
-                {alumnus.email && (
-                  <a
-                    href={`mailto:${alumnus.email}`}
-                    className="text-purple-600 hover:text-purple-800 text-sm font-medium"
-                  >
-                    Email
-                  </a>
-                )}
+
+                <span className="inline-block px-2 py-1 text-xs bg-blue-100 text-blue-800 rounded-full">
+                  {person.currentStatus}
+                </span>
               </div>
             </div>
           ))}
         </div>
 
-        {alumni.docs.length === 0 && (
+        {alumni.length === 0 && initialized && (
           <div className="text-center py-12">
-            <div className="max-w-md mx-auto">
-              <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                Belum ada alumni yang terdaftar
-              </h2>
-              <p className="text-gray-600 mb-6">
-                Jadilah yang pertama untuk mendaftar sebagai alumni!
-              </p>
-              <Link
-                href="/alumni/register"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg inline-block transition-colors"
-              >
-                Daftar Sekarang
-              </Link>
-            </div>
+            <p className="text-gray-500">Tidak ada data alumni yang ditemukan.</p>
           </div>
         )}
       </div>

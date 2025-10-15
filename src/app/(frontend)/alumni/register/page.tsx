@@ -1,4 +1,4 @@
-import AlumniForm from '@/components/AlumniForm/AlumniForm'
+import RegisterForm from '@/components/auth/RegisterForm'
 
 export const metadata = {
   title: 'Daftar Alumni - Computer Science UGM',
@@ -8,7 +8,7 @@ export const metadata = {
 export default function RegisterPage() {
   return (
     <div className="container mx-auto px-4 py-8">
-      <AlumniForm />
+      <RegisterForm />
     </div>
   )
 }
