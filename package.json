@@ -8,6 +8,7 @@
     "build": "cross-env NODE_OPTIONS=--no-deprecation next build",
     "ci": "payload migrate && pnpm build",
     "dev": "cross-env NODE_OPTIONS=--no-deprecation next dev",
+    "seed": "tsx src/scripts/seed-alumni.ts",
     "devsafe": "rm -rf .next && cross-env NODE_OPTIONS=--no-deprecation next dev",
     "generate:importmap": "cross-env NODE_OPTIONS=--no-deprecation payload generate:importmap",
     "generate:types": "cross-env NODE_OPTIONS=--no-deprecation payload generate:types",
@@ -53,6 +54,7 @@
     "postcss": "^8.5.6",
     "prettier": "^3.4.2",
     "tailwindcss": "^4.1.14",
+    "tsx": "^4.20.6",
     "typescript": "5.7.3",
     "vite-tsconfig-paths": "5.1.4",
     "vitest": "3.2.3"

@@ -151,21 +151,53 @@ export interface Alumnus {
   id: number;
   name: string;
   batch: number;
-  email: string;
-  phone?: string | null;
-  currentStatus?: ('working' | 'studying' | 'entrepreneur' | 'freelancer' | 'job-seeking' | 'other') | null;
-  institution?: string | null;
-  position?: string | null;
-  location?: {
-    city?: string | null;
-    country?: string | null;
+  nim?: string | null;
+  kontak: {
+    location: {
+      city: string;
+      country: string;
+    };
+    phone: string;
+    email: string;
+    linkedin?: string | null;
   };
-  linkedin?: string | null;
-  website?: string | null;
-  photo?: (number | null) | Media;
-  isPublic?: boolean | null;
-  source?: ('manual' | 'google-forms') | null;
-  googleFormsId?: string | null;
+  pekerjaan: {
+    currentEmployer: string;
+    workField: (
+      | 'akademisi'
+      | 'pemerintah'
+      | 'lembaga-pemerintah'
+      | 'wirausaha'
+      | 'swasta'
+      | 'konsultan'
+      | 'teknologi'
+      | 'keuangan'
+      | 'media'
+      | 'kesehatan'
+      | 'pendidikan'
+      | 'nonprofit'
+      | 'lainnya'
+    )[];
+    position: string;
+  };
+  jejaring: {
+    contactPersonReady: 'ya' | 'tidak';
+    alumniOfficerReady: 'ya' | 'tidak';
+    otherContacts?: string | null;
+  };
+  kontribusi?: {
+    willingToHelp?: ('mentoring-career' | 'magang-riset' | 'beasiswa-studi' | 'networking')[] | null;
+    helpTopics?: string | null;
+  };
+  lainnya?: {
+    suggestions?: string | null;
+  };
+  metadata?: {
+    photo?: (number | null) | Media;
+    isPublic?: boolean | null;
+    source?: ('manual' | 'google-forms') | null;
+    googleFormsId?: string | null;
+  };
   updatedAt: string;
   createdAt: string;
 }
@@ -300,23 +332,53 @@ export interface MediaSelect<T extends boolean = true> {
 export interface AlumniSelect<T extends boolean = true> {
   name?: T;
   batch?: T;
-  email?: T;
-  phone?: T;
-  currentStatus?: T;
-  institution?: T;
-  position?: T;
-  location?:
+  nim?: T;
+  kontak?:
     | T
     | {
-        city?: T;
-        country?: T;
+        location?:
+          | T
+          | {
+              city?: T;
+              country?: T;
+            };
+        phone?: T;
+        email?: T;
+        linkedin?: T;
       };
-  linkedin?: T;
-  website?: T;
-  photo?: T;
-  isPublic?: T;
-  source?: T;
-  googleFormsId?: T;
+  pekerjaan?:
+    | T
+    | {
+        currentEmployer?: T;
+        workField?: T;
+        position?: T;
+      };
+  jejaring?:
+    | T
+    | {
+        contactPersonReady?: T;
+        alumniOfficerReady?: T;
+        otherContacts?: T;
+      };
+  kontribusi?:
+    | T
+    | {
+        willingToHelp?: T;
+        helpTopics?: T;
+      };
+  lainnya?:
+    | T
+    | {
+        suggestions?: T;
+      };
+  metadata?:
+    | T
+    | {
+        photo?: T;
+        isPublic?: T;
+        source?: T;
+        googleFormsId?: T;
+      };
   updatedAt?: T;
   createdAt?: T;
 }

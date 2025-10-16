@@ -11,10 +11,17 @@ interface ImportApiResponse {
     created: number
     updated: number
     errors: string[]
+    photoResults: {
+      success: number
+      failed: number
+      skipped: number
+      downloaded: number
+    }
   }
   summary?: {
     totalRows: number
     successRate: string
+    photoEfficiency: string
   }
   error?: string
   message?: string
@@ -55,7 +62,7 @@ export default function ImportComponent() {
       setLoading(true)
       setError('')
 
-      const response = await fetch('/api/alumni', {
+      const response = await fetch('/api/alumni/filter', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
@@ -95,9 +102,10 @@ export default function ImportComponent() {
         const processed = result.results?.processed || 0
         const created = result.results?.created || 0
         const updated = result.results?.updated || 0
+        const photoDownloaded = result.results?.photoResults.downloaded || 0
 
         setMessage(
-          `Import berhasil! Diproses: ${processed}, Dibuat: ${created}, Diperbarui: ${updated}`,
+          `Import berhasil! Diproses: ${processed}, Dibuat: ${created}, Diperbarui: ${updated}, Foto didownload: ${photoDownloaded}`,
         )
 
         await fetchAlumni()
@@ -111,38 +119,40 @@ export default function ImportComponent() {
     }
   }
 
-  const getStatusLabel = (status: string): string => {
-    const statusMap: Record<string, string> = {
-      working: 'Bekerja',
-      studying: 'Kuliah',
-      entrepreneur: 'Wirausaha',
-      freelancer: 'Freelancer',
-      'job-seeking': 'Mencari Kerja',
-      other: 'Lainnya',
-    }
-    return statusMap[status] || status
+  const getWorkFieldsDisplay = (workField: string[]): string => {
+    if (!workField || workField.length === 0) return '-'
+    return workField.join(', ')
   }
 
-  const getStatusColor = (status: string): string => {
-    const colorMap: Record<string, string> = {
-      working: 'bg-green-100 text-green-800',
-      studying: 'bg-blue-100 text-blue-800',
-      entrepreneur: 'bg-purple-100 text-purple-800',
-      freelancer: 'bg-yellow-100 text-yellow-800',
-      'job-seeking': 'bg-orange-100 text-orange-800',
-      other: 'bg-gray-100 text-gray-800',
-    }
-    return colorMap[status] || 'bg-gray-100 text-gray-800'
+  const getWorkFieldColor = (workField: string[]): string => {
+    if (!workField || workField.length === 0) return 'bg-gray-100 text-gray-800'
+
+    if (workField.includes('teknologi')) return 'bg-blue-100 text-blue-800'
+    if (workField.includes('akademisi')) return 'bg-purple-100 text-purple-800'
+    if (workField.includes('pemerintah')) return 'bg-green-100 text-green-800'
+    if (workField.includes('wirausaha')) return 'bg-orange-100 text-orange-800'
+    if (workField.includes('swasta')) return 'bg-indigo-100 text-indigo-800'
+
+    return 'bg-gray-100 text-gray-800'
   }
 
-  const formatLocation = (location: Alumnus['location']): string => {
-    if (!location) return '-'
-
+  const formatLocation = (city: string, country: string): string => {
     const parts = []
-    if (location.city) parts.push(location.city)
-    if (location.country) parts.push(location.country)
-
+    if (city) parts.push(city)
+    if (country) parts.push(country)
     return parts.length > 0 ? parts.join(', ') : '-'
+  }
+
+  const getHelpTypesDisplay = (willingToHelp?: string[]): string => {
+    if (!willingToHelp || willingToHelp.length === 0) return 'Tidak tersedia'
+    return willingToHelp.join(', ')
+  }
+
+  const getPhotoUrl = (photo: any): string | null => {
+    if (!photo) return null
+    if (typeof photo === 'string') return photo
+    if (typeof photo === 'object' && photo.url) return photo.url
+    return null
   }
 
   return (
@@ -260,10 +270,10 @@ export default function ImportComponent() {
                       Email
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Status
+                      Bidang Kerja
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                      Posisi/Institusi
+                      Perusahaan/Posisi
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                       Lokasi
@@ -277,16 +287,17 @@ export default function ImportComponent() {
                   </tr>
                 </thead>
                 <tbody className="bg-white divide-y divide-gray-200">
-                  {alumni.map((alumnus) => (
-                    <tr key={alumnus.id} className="hover:bg-gray-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex items-center">
-                          {alumnus.photo &&
-                            typeof alumnus.photo === 'object' &&
-                            alumnus.photo.url && (
+                  {alumni.map((alumnus) => {
+                    const photoUrl = getPhotoUrl(alumnus.metadata?.photo)
+
+                    return (
+                      <tr key={alumnus.id} className="hover:bg-gray-50">
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center">
+                            {photoUrl && (
                               <div className="h-8 w-8 rounded-full mr-3 overflow-hidden flex-shrink-0">
                                 <Image
-                                  src={alumnus.photo.url}
+                                  src={photoUrl}
                                   alt={`Foto ${alumnus.name}`}
                                   width={32}
                                   height={32}
@@ -295,56 +306,72 @@ export default function ImportComponent() {
                                 />
                               </div>
                             )}
-                          <div>
-                            <div className="text-sm font-medium text-gray-900">{alumnus.name}</div>
+                            <div>
+                              <div className="text-sm font-medium text-gray-900">
+                                {alumnus.name}
+                              </div>
+                              {alumnus.nim && (
+                                <div className="text-xs text-gray-500">{alumnus.nim}</div>
+                              )}
+                            </div>
                           </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {alumnus.batch}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {alumnus.email}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(
-                            alumnus.currentStatus || '',
-                          )}`}
-                        >
-                          {getStatusLabel(alumnus.currentStatus || 'N/A')}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {alumnus.position || alumnus.institution || '-'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        {formatLocation(alumnus.location)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            alumnus.source === 'google-forms'
-                              ? 'bg-blue-100 text-blue-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}
-                        >
-                          {alumnus.source === 'google-forms' ? 'Google Forms' : 'Manual'}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                        <span
-                          className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
-                            alumnus.isPublic
-                              ? 'bg-green-100 text-green-800'
-                              : 'bg-red-100 text-red-800'
-                          }`}
-                        >
-                          {alumnus.isPublic ? 'Ya' : 'Tidak'}
-                        </span>
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {alumnus.batch}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {alumnus.kontak.email}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getWorkFieldColor(
+                              alumnus.pekerjaan.workField,
+                            )}`}
+                          >
+                            {getWorkFieldsDisplay(alumnus.pekerjaan.workField)}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <div>
+                            <div className="font-medium">{alumnus.pekerjaan.currentEmployer}</div>
+                            <div className="text-xs text-gray-500">
+                              {alumnus.pekerjaan.position}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          {formatLocation(
+                            alumnus.kontak.location.city,
+                            alumnus.kontak.location.country,
+                          )}
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              alumnus.metadata?.source === 'google-forms'
+                                ? 'bg-blue-100 text-blue-800'
+                                : 'bg-gray-100 text-gray-800'
+                            }`}
+                          >
+                            {alumnus.metadata?.source === 'google-forms'
+                              ? 'Google Forms'
+                              : 'Manual'}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                          <span
+                            className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${
+                              alumnus.metadata?.isPublic
+                                ? 'bg-green-100 text-green-800'
+                                : 'bg-red-100 text-red-800'
+                            }`}
+                          >
+                            {alumnus.metadata?.isPublic ? 'Ya' : 'Tidak'}
+                          </span>
+                        </td>
+                      </tr>
+                    )
+                  })}
                 </tbody>
               </table>
             </div>

@@ -10,81 +10,72 @@ export async function GET(request: NextRequest) {
 
     const batch = searchParams.get('batch')
     const city = searchParams.get('city')
-    const country = searchParams.get('country')
-    const currentStatus = searchParams.get('currentStatus')
-    const institution = searchParams.get('institution') // ✅ Sudah ada
-    const position = searchParams.get('position') // ✅ Tambah filter position
+    const workField = searchParams.get('workField')
+    const currentEmployer = searchParams.get('currentEmployer')
+    const position = searchParams.get('position')
     const search = searchParams.get('search')
-    const limit = parseInt(searchParams.get('limit') || '100')
-    const page = parseInt(searchParams.get('page') || '1')
+    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 500)
+    const page = Math.max(parseInt(searchParams.get('page') || '1'), 1)
     const sort = searchParams.get('sort') || '-batch'
 
-    // Build where clause
+    // ✅ Build where clause untuk struktur baru
     const where = {
-      isPublic: {
+      'metadata.isPublic': {
         equals: true,
       },
     } as Where
 
-    if (batch) {
+    if (batch && !isNaN(parseInt(batch))) {
       where.batch = {
         equals: parseInt(batch),
       }
     }
 
-    if (currentStatus) {
-      where.currentStatus = {
-        equals: currentStatus,
+    if (city && city.trim()) {
+      where['kontak.location.city'] = {
+        contains: city.trim(),
       }
     }
 
-    if (city) {
-      where['location.city'] = {
-        contains: city,
+    if (workField && workField.trim()) {
+      where['pekerjaan.workField'] = {
+        contains: workField.trim(),
       }
     }
 
-    if (country) {
-      where['location.country'] = {
-        contains: country,
+    if (currentEmployer && currentEmployer.trim()) {
+      where['pekerjaan.currentEmployer'] = {
+        contains: currentEmployer.trim(),
       }
     }
 
-    // ✅ Filter berdasarkan institusi/perusahaan
-    if (institution) {
-      where.institution = {
-        contains: institution,
+    if (position && position.trim()) {
+      where['pekerjaan.position'] = {
+        contains: position.trim(),
       }
     }
 
-    // ✅ TAMBAHAN: Filter berdasarkan posisi/jabatan
-    if (position) {
-      where.position = {
-        contains: position,
-      }
-    }
-
-    // ✅ Handle search across multiple fields
-    if (search) {
+    if (search && search.trim()) {
+      const searchTerm = search.trim()
       where.or = [
         {
           name: {
-            contains: search,
+            contains: searchTerm,
           },
         },
         {
-          email: {
-            contains: search,
+          'kontak.email': {
+            contains: searchTerm,
           },
         },
         {
-          institution: {
-            contains: search,
+          'pekerjaan.currentEmployer': {
+            contains: searchTerm,
           },
         },
         {
-          position: {
-            contains: search,
+          'pekerjaan.position': {
+            contains: searchTerm,
           },
         },
       ]
@@ -98,7 +89,7 @@ export async function GET(request: NextRequest) {
       sort,
       limit,
       page,
-      depth: 1,
+      depth: 2, // ✅ Increase depth untuk nested data
     })
 
     console.log(`📊 Found ${result.docs.length} alumni out of ${result.totalDocs}`)
@@ -114,7 +105,15 @@ export async function GET(request: NextRequest) {
       hasPrevPage: result.hasPrevPage,
     })
   } catch (error: unknown) {
-    console.error('Error filtering alumni:', error)
-    return NextResponse.json({ error: 'Terjadi kesalahan server' }, { status: 500 })
+    console.error('❌ Error filtering alumni:', error)
+
+    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan server'
+    return NextResponse.json(
+      {
+        error: errorMessage,
+        success: false,
+      },
+      { status: 500 },
+    )
   }
 }

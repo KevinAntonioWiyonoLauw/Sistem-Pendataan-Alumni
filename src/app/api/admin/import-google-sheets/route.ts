@@ -16,8 +16,6 @@ interface ImportResults {
   created: number
   updated: number
   errors: string[]
-  usersCreated: number
-  userErrors: string[]
   photoResults: {
     success: number
     failed: number
@@ -30,58 +28,48 @@ interface SpreadsheetRow {
   timestamp: string
   name: string
   batch: string
+  nim: string
   email: string
   phone: string
-  currentStatus: string
-  institution: string
-  position: string
-  location: string
+  city: string
+  country: string
   linkedin: string
-  website: string
+  currentEmployer: string
+  workField: string
+  position: string
+  contactPersonReady: string
+  alumniOfficerReady: string
+  otherContacts: string
+  willingToHelp: string
+  helpTopics: string
+  suggestions: string
   photoUrl: string
 }
 
-interface AlumniCreateData {
-  name: string
-  batch: number
-  email: string
-  phone?: string | null
-  currentStatus: NonNullable<Alumnus['currentStatus']>
-  institution?: string | null
-  position?: string | null
-  location: {
-    city?: string | null
-    country: string
-  }
-  linkedin?: string | null
-  website?: string | null
-  photo?: number | null
-  source: 'google-forms'
-  googleFormsId?: string
-  isPublic: boolean
-}
-
-interface AlumniUpdateData {
-  name?: string
-  batch?: number
-  email?: string
-  phone?: string | null
-  currentStatus?: NonNullable<Alumnus['currentStatus']>
-  institution?: string | null
-  position?: string | null
-  location?: {
-    city?: string | null
-    country: string
-  }
-  linkedin?: string | null
-  website?: string | null
-  photo?: number | null
-  source?: 'google-forms'
-  googleFormsId?: string
-  isPublic?: boolean
-}
-
 const existingAlumniCache = new Map<string, Alumnus>()
+
+const VALID_WORK_FIELDS = [
+  'akademisi',
+  'pemerintah',
+  'lembaga-pemerintah',
+  'wirausaha',
+  'swasta',
+  'konsultan',
+  'teknologi',
+  'keuangan',
+  'media',
+  'kesehatan',
+  'pendidikan',
+  'nonprofit',
+  'lainnya',
+] as const
+
+const VALID_HELP_TYPES = [
+  'mentoring-career',
+  'magang-riset',
+  'beasiswa-studi',
+  'networking',
+] as const
 
 async function getGoogleSheetsData(): Promise<string[][]> {
   const auth = new google.auth.GoogleAuth({
@@ -126,8 +114,6 @@ async function downloadImageFromDrive(
       return null
     }
 
-    console.log('Extracted file ID:', fileId)
-
     const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`
 
     const response = await fetch(downloadUrl, {
@@ -150,12 +136,7 @@ async function downloadImageFromDrive(
       return null
     }
 
-    const sharpImage = sharp(buffer)
-    const metadata = await sharpImage.metadata()
-
-    console.log(`Processing ${metadata.format} image (${metadata.width}x${metadata.height})`)
-
-    const processedBuffer = await sharpImage
+    const processedBuffer = await sharp(buffer)
       .resize(800, 800, {
         fit: 'inside',
         withoutEnlargement: true,
@@ -190,22 +171,17 @@ async function downloadImageFromDrive(
   }
 }
 
-function mapStatus(status: string): NonNullable<Alumnus['currentStatus']> {
-  const statusMap: Record<string, NonNullable<Alumnus['currentStatus']>> = {
-    Bekerja: 'working',
-    'Studi Lanjut': 'studying',
-    Wirausaha: 'entrepreneur',
-    'Belum Bekerja': 'job-seeking',
-    Freelancer: 'freelancer',
-    Lainnya: 'other',
-  }
-  return statusMap[status] || 'job-seeking'
+function parseMultipleValues(value: string, validOptions: readonly string[]): string[] {
+  if (!value) return []
+  return value
+    .split(',')
+    .map((v) => v.trim().toLowerCase())
+    .filter((v) => v !== '' && validOptions.includes(v as any))
 }
 
-function parseLocation(location: string): { city: string | null; country: string } {
-  if (!location) return { city: null, country: 'Indonesia' }
-  const [city, country] = location.split(',').map((s) => s.trim())
-  return { city: city || null, country: country || 'Indonesia' }
+function parseYesNo(value: string): 'ya' | 'tidak' {
+  const cleanValue = value.toLowerCase().trim()
+  return cleanValue === 'ya' || cleanValue === 'yes' ? 'ya' : 'tidak'
 }
 
 function validateEmail(email: string): boolean {
@@ -216,62 +192,23 @@ function parseSpreadsheetRow(row: string[]): SpreadsheetRow {
   return {
     timestamp: row[0] || '',
     name: (row[1] || '').trim(),
-    batch: row[2] || '',
-    email: (row[3] || '').trim(),
-    phone: (row[4] || '').trim(),
-    currentStatus: (row[5] || '').trim(),
-    institution: (row[6] || '').trim(),
-    position: (row[7] || '').trim(),
-    location: (row[8] || '').trim(),
-    linkedin: (row[9] || '').trim(),
-    website: (row[10] || '').trim(),
-    photoUrl: (row[11] || '').trim(),
-  }
-}
-
-async function createUserForAlumni(
-  email: string,
-  name: string,
-  alumniId: string,
-  payload: Payload,
-): Promise<{ success: boolean; message: string }> {
-  try {
-    // Check if user already exists
-    const existingUser = await payload.find({
-      collection: 'users',
-      where: {
-        email: {
-          equals: email.toLowerCase(),
-        },
-      },
-    })
-
-    if (existingUser.docs.length > 0) {
-      console.log(`👤 User already exists for: ${name}`)
-      return { success: true, message: 'User already exists' }
-    }
-
-    // Create user without password
-    const userPayload = {
-      email: email.toLowerCase(),
-      name: name,
-      roles: ['alumni'] as ('admin' | 'alumni')[],
-      alumniId: parseInt(alumniId),
-      hasPassword: false,
-      // No password field - user needs to create password later
-    }
-
-    await payload.create({
-      collection: 'users',
-      data: userPayload,
-    })
-
-    console.log(`✅ Created user without password for: ${name}`)
-    return { success: true, message: 'User created successfully' }
-  } catch (userError: unknown) {
-    const errorMessage = userError instanceof Error ? userError.message : 'Unknown error'
-    console.error(`❌ Error creating user for ${name}:`, errorMessage)
-    return { success: false, message: errorMessage }
+    batch: (row[2] || '').trim(),
+    nim: (row[3] || '').trim(),
+    email: (row[4] || '').trim(),
+    phone: (row[5] || '').trim(),
+    city: (row[6] || '').trim(),
+    country: (row[7] || '').trim(),
+    linkedin: (row[8] || '').trim(),
+    currentEmployer: (row[9] || '').trim(),
+    workField: (row[10] || '').trim(),
+    position: (row[11] || '').trim(),
+    contactPersonReady: (row[12] || '').trim(),
+    alumniOfficerReady: (row[13] || '').trim(),
+    otherContacts: (row[14] || '').trim(),
+    willingToHelp: (row[15] || '').trim(),
+    helpTopics: (row[16] || '').trim(),
+    suggestions: (row[17] || '').trim(),
+    photoUrl: (row[18] || '').trim(),
   }
 }
 
@@ -293,8 +230,6 @@ export async function POST() {
       created: 0,
       updated: 0,
       errors: [],
-      usersCreated: 0,
-      userErrors: [],
       photoResults: {
         success: 0,
         failed: 0,
@@ -309,20 +244,20 @@ export async function POST() {
     console.log(`Starting import of ${validRows.length} alumni records...`)
 
     const emails = validRows
-      .map((row) => (row[3] || '').trim())
+      .map((row) => (row[4] || '').trim())
       .filter((email) => email && validateEmail(email))
 
     const existingAlumni = await payload.find({
       collection: 'alumni',
       where: {
-        email: { in: emails },
+        'kontak.email': { in: emails },
       },
       limit: emails.length,
     })
 
     existingAlumniCache.clear()
     existingAlumni.docs.forEach((alumni) => {
-      existingAlumniCache.set(alumni.email, alumni)
+      existingAlumniCache.set(alumni.kontak.email, alumni)
     })
 
     console.log(`Found ${existingAlumni.docs.length} existing alumni in database`)
@@ -345,27 +280,33 @@ export async function POST() {
           continue
         }
 
-        const existingAlumni = existingAlumniCache.get(rowData.email)
-
-        let existingPhotoId: number | null = null
-        if (existingAlumni?.photo) {
-          if (typeof existingAlumni.photo === 'number') {
-            existingPhotoId = existingAlumni.photo
-          } else if (typeof existingAlumni.photo === 'object' && existingAlumni.photo.id) {
-            existingPhotoId = existingAlumni.photo.id
-          }
+        if (!rowData.currentEmployer || !rowData.position || !rowData.workField) {
+          results.errors.push(`Missing work info for: ${rowData.name}`)
+          continue
         }
 
-        let photoId: number | null = existingPhotoId
+        if (!rowData.contactPersonReady || !rowData.alumniOfficerReady) {
+          results.errors.push(`Missing jejaring info for: ${rowData.name}`)
+          continue
+        }
+
+        const existingAlumni = existingAlumniCache.get(rowData.email)
+
+        let photoId: number | undefined = undefined
+        if (existingAlumni?.metadata?.photo) {
+          photoId =
+            typeof existingAlumni.metadata.photo === 'number'
+              ? existingAlumni.metadata.photo
+              : existingAlumni.metadata.photo.id
+        }
 
         if (
           rowData.photoUrl &&
           (rowData.photoUrl.includes('drive.google.com') ||
             rowData.photoUrl.includes('docs.google.com'))
         ) {
-          if (existingPhotoId) {
-            console.log(`📸 Photo exists (ID: ${existingPhotoId}), skipping`)
-            photoId = existingPhotoId
+          if (photoId) {
+            console.log(`📸 Photo exists (ID: ${photoId}), skipping`)
             results.photoResults.skipped++
             results.photoResults.success++
           } else {
@@ -381,88 +322,76 @@ export async function POST() {
               results.photoResults.failed++
             }
           }
-        } else if (!rowData.photoUrl) {
-          console.log(`⏭️ No photo URL`)
         }
 
-        const { city, country } = parseLocation(rowData.location)
+        const workFields = parseMultipleValues(rowData.workField, VALID_WORK_FIELDS) as Array<
+          (typeof VALID_WORK_FIELDS)[number]
+        >
+        const helpTypes = parseMultipleValues(rowData.willingToHelp, VALID_HELP_TYPES) as Array<
+          (typeof VALID_HELP_TYPES)[number]
+        >
+
+        const alumniData = {
+          name: rowData.name,
+          batch: parseInt(rowData.batch) || new Date().getFullYear(),
+          nim: rowData.nim || undefined,
+
+          kontak: {
+            location: {
+              city: rowData.city || 'Unknown',
+              country: rowData.country || 'Indonesia',
+            },
+            phone: rowData.phone,
+            email: rowData.email.toLowerCase(),
+            linkedin: rowData.linkedin || undefined,
+          },
+
+          pekerjaan: {
+            currentEmployer: rowData.currentEmployer,
+            workField: workFields,
+            position: rowData.position,
+          },
+
+          jejaring: {
+            contactPersonReady: parseYesNo(rowData.contactPersonReady),
+            alumniOfficerReady: parseYesNo(rowData.alumniOfficerReady),
+            otherContacts: rowData.otherContacts || undefined,
+          },
+
+          kontribusi: {
+            willingToHelp: helpTypes,
+            helpTopics: rowData.helpTopics || undefined,
+          },
+
+          lainnya: {
+            suggestions: rowData.suggestions || undefined,
+          },
+
+          metadata: {
+            photo: photoId,
+            isPublic: true,
+            source: 'google-forms' as const,
+            googleFormsId: rowData.timestamp,
+          },
+        }
 
         if (existingAlumni) {
-          const updateData: AlumniUpdateData = {
-            name: rowData.name,
-            batch: parseInt(rowData.batch) || new Date().getFullYear(),
-            email: rowData.email,
-            phone: rowData.phone || null,
-            currentStatus: mapStatus(rowData.currentStatus),
-            institution: rowData.institution || null,
-            position: rowData.position || null,
-            location: { city, country },
-            linkedin: rowData.linkedin || null,
-            website: rowData.website || null,
-            photo: photoId,
-            source: 'google-forms',
-            googleFormsId: rowData.timestamp,
-            isPublic: true,
-          }
-
           await payload.update({
             collection: 'alumni',
             id: existingAlumni.id,
-            data: updateData,
+            data: alumniData,
           })
           results.updated++
           console.log(`✅ Updated: ${rowData.name}`)
-
-          // Try to create user for existing alumni if not exists
-          const userResult = await createUserForAlumni(
-            rowData.email,
-            rowData.name,
-            existingAlumni.id.toString(),
-            payload,
-          )
-          if (userResult.success && userResult.message === 'User created successfully') {
-            results.usersCreated++
-          } else if (!userResult.success) {
-            results.userErrors.push(`${rowData.name}: ${userResult.message}`)
-          }
         } else {
-          const createData: AlumniCreateData = {
-            name: rowData.name,
-            batch: parseInt(rowData.batch) || new Date().getFullYear(),
-            email: rowData.email,
-            phone: rowData.phone || null,
-            currentStatus: mapStatus(rowData.currentStatus),
-            institution: rowData.institution || null,
-            position: rowData.position || null,
-            location: { city, country },
-            linkedin: rowData.linkedin || null,
-            website: rowData.website || null,
-            photo: photoId,
-            source: 'google-forms',
-            googleFormsId: rowData.timestamp,
-            isPublic: true,
-          }
-
           const newAlumni = (await payload.create({
             collection: 'alumni',
-            data: createData,
+            data: alumniData,
           })) as Alumnus
+
           existingAlumniCache.set(rowData.email, newAlumni)
           results.created++
           console.log(`✅ Created: ${rowData.name}`)
-
-          // Create user without password for new alumni
-          const userResult = await createUserForAlumni(
-            rowData.email,
-            rowData.name,
-            newAlumni.id.toString(),
-            payload,
-          )
-          if (userResult.success && userResult.message === 'User created successfully') {
-            results.usersCreated++
-          } else if (!userResult.success) {
-            results.userErrors.push(`${rowData.name}: ${userResult.message}`)
-          }
         }
 
         results.processed++
@@ -486,15 +415,10 @@ export async function POST() {
           results.photoResults.skipped > 0
             ? `Saved ${results.photoResults.skipped} downloads`
             : 'All new downloads',
-        usersCreated: results.usersCreated,
-        userErrorsCount: results.userErrors.length,
       },
     }
 
     console.log('\n✅ Import completed!', summary)
-    console.log(`👤 Users created: ${results.usersCreated}`)
-    console.log(`❌ User creation errors: ${results.userErrors.length}`)
-
     return NextResponse.json(summary)
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
@@ -533,23 +457,55 @@ export async function GET() {
     }))
 
     const values = valuesResponse.data.values || []
+
+    const expectedHeaders = [
+      'Timestamp',
+      'Nama Lengkap',
+      'Tahun Masuk (Angkatan)',
+      'NIM (Opsional)',
+      'Email Aktif',
+      'Nomor HP/WA Aktif',
+      'Domisili Kota',
+      'Domisili Negara',
+      'Akun LinkedIn',
+      'Nama Perusahaan/Instansi',
+      'Bidang Pekerjaan Utama',
+      'Posisi/Jabatan Saat Ini',
+      'Contact Person Angkatan',
+      'Pengurus Alumni',
+      'Contact Person Lain',
+      'Bersedia Membantu Mahasiswa',
+      'Topik Bantuan',
+      'Saran/Harapan Alumni',
+      'Foto Profil (URL)',
+    ]
+
     const sampleData =
       values.length > 0
         ? {
             range: RANGE,
             totalRows: values.length,
             headers: values[0],
+            expectedHeaders,
             sampleRow: values[1] || null,
+            headerMapping: values[0]?.map((header: string, index: number) => ({
+              column: index,
+              actual: header,
+              expected: expectedHeaders[index] || 'Extra column',
+            })),
           }
         : null
 
     return NextResponse.json({
-      message: 'Google Sheets Import API - Connection Test',
+      message: 'Google Sheets Import API - Connection Test (Updated Structure)',
       spreadsheetId: process.env.GOOGLE_SPREADSHEET_ID,
       serviceAccount: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
       availableSheets,
       sampleData,
       endpoint: 'POST /api/admin/import-google-sheets',
+      note: 'Updated for new alumni structure with groups',
+      validWorkFields: VALID_WORK_FIELDS,
+      validHelpTypes: VALID_HELP_TYPES,
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'
