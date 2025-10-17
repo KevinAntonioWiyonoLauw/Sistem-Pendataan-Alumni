@@ -1,13 +1,11 @@
-import { NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
+import { NextRequest, NextResponse } from 'next/server'
+import { getPayload } from 'payload'
 import configPromise from '@payload-config'
 import { google } from 'googleapis'
-import sharp from 'sharp'
-import type { Payload } from 'payload'
-import type { Media, Alumnus } from '@/payload-types'
+import type { Alumnus } from '@/payload-types'
 
 const SPREADSHEET_ID = process.env.GOOGLE_SPREADSHEET_ID
-const RANGE = 'Form Responses 1!A:Z'
+const RANGE = 'Form Responses 1!A:R'
 const SERVICE_ACCOUNT_EMAIL = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL
 const PRIVATE_KEY = process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n')
 
@@ -16,12 +14,6 @@ interface ImportResults {
   created: number
   updated: number
   errors: string[]
-  photoResults: {
-    success: number
-    failed: number
-    skipped: number
-    downloaded: number
-  }
 }
 
 interface SpreadsheetRow {
@@ -35,15 +27,14 @@ interface SpreadsheetRow {
   country: string
   linkedin: string
   currentEmployer: string
-  workField: string
   position: string
+  workField: string
   contactPersonReady: string
   alumniOfficerReady: string
   otherContacts: string
   willingToHelp: string
   helpTopics: string
   suggestions: string
-  photoUrl: string
 }
 
 const existingAlumniCache = new Map<string, Alumnus>()
@@ -71,6 +62,73 @@ const VALID_HELP_TYPES = [
   'networking',
 ] as const
 
+const WORK_FIELD_MAPPING: Record<string, string> = {
+  'teknologi/it': 'teknologi',
+  teknologi: 'teknologi',
+  it: 'teknologi',
+  akademisi: 'akademisi',
+  pemerintah: 'pemerintah',
+  'lembaga pemerintah': 'lembaga-pemerintah',
+  'lembaga-pemerintah': 'lembaga-pemerintah',
+  wirausaha: 'wirausaha',
+  swasta: 'swasta',
+  konsultan: 'konsultan',
+  'keuangan/perbankan': 'keuangan',
+  keuangan: 'keuangan',
+  perbankan: 'keuangan',
+  'media/komunikasi': 'media',
+  media: 'media',
+  komunikasi: 'media',
+  kesehatan: 'kesehatan',
+  pendidikan: 'pendidikan',
+  'non-profit/lsm': 'nonprofit',
+  nonprofit: 'nonprofit',
+  lsm: 'nonprofit',
+  lainnya: 'lainnya',
+}
+
+const HELP_TYPE_MAPPING: Record<string, string> = {
+  'mentoring career': 'mentoring-career',
+  'mentoring-career': 'mentoring-career',
+  'kesempatan magang/riset': 'magang-riset',
+  'magang/riset': 'magang-riset',
+  'magang-riset': 'magang-riset',
+  'sharing beasiswa/studi lanjut': 'beasiswa-studi',
+  'beasiswa/studi lanjut': 'beasiswa-studi',
+  'beasiswa-studi': 'beasiswa-studi',
+  'networking professional': 'networking',
+  networking: 'networking',
+}
+
+async function verifyAdminAuth(request: NextRequest): Promise<boolean> {
+  try {
+    const payload = await getPayload({ config: configPromise })
+
+    const payloadToken = request.cookies.get('payload-token')?.value
+
+    if (!payloadToken) {
+      console.log('No payload token found')
+      return false
+    }
+
+    const user = await payload.auth({ headers: request.headers })
+
+    if (!user?.user) {
+      console.log('No user found in token')
+      return false
+    }
+
+    const isAdmin = user.user.roles?.includes('admin') || user.user.collection === 'users'
+
+    console.log(`User auth check: ${user.user.email || 'unknown'}, isAdmin: ${isAdmin}`)
+
+    return isAdmin
+  } catch (error) {
+    console.error('Auth verification error:', error)
+    return false
+  }
+}
+
 async function getGoogleSheetsData(): Promise<string[][]> {
   const auth = new google.auth.GoogleAuth({
     credentials: {
@@ -90,93 +148,15 @@ async function getGoogleSheetsData(): Promise<string[][]> {
   return response.data.values || []
 }
 
-async function downloadImageFromDrive(
-  driveUrl: string,
-  name: string,
-  payload: Payload,
-): Promise<number | null> {
-  try {
-    console.log(`📥 Downloading new photo for ${name}...`)
-
-    let fileId: string | null = null
-    const openMatch = driveUrl.match(/id=([a-zA-Z0-9-_]+)/)
-    if (openMatch) {
-      fileId = openMatch[1]
-    } else {
-      const fileMatch = driveUrl.match(/\/d\/([a-zA-Z0-9-_]+)/)
-      if (fileMatch) {
-        fileId = fileMatch[1]
-      }
-    }
-
-    if (!fileId) {
-      console.log('Could not extract file ID from URL:', driveUrl)
-      return null
-    }
-
-    const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`
-
-    const response = await fetch(downloadUrl, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36',
-        Accept: 'image/*',
-      },
-    })
-
-    if (!response.ok) {
-      console.log(`Failed to download image: ${response.status}`)
-      return null
-    }
-
-    const arrayBuffer = await response.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
-
-    if (buffer.length === 0) {
-      console.log('Downloaded empty file')
-      return null
-    }
-
-    const processedBuffer = await sharp(buffer)
-      .resize(800, 800, {
-        fit: 'inside',
-        withoutEnlargement: true,
-      })
-      .jpeg({
-        quality: 85,
-        progressive: true,
-      })
-      .toBuffer()
-
-    const filename = `${name.replace(/\s+/g, '-').toLowerCase()}-${Date.now()}.jpg`
-
-    const media = (await payload.create({
-      collection: 'media',
-      data: {
-        alt: `Foto profil ${name}`,
-      },
-      file: {
-        data: processedBuffer,
-        mimetype: 'image/jpeg',
-        name: filename,
-        size: processedBuffer.length,
-      },
-    })) as Media
-
-    console.log('✅ Successfully uploaded image - Media ID:', media.id)
-    return media.id
-  } catch (error) {
-    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
-    console.error('❌ Error processing image:', errorMessage)
-    return null
-  }
-}
-
-function parseMultipleValues(value: string, validOptions: readonly string[]): string[] {
+function parseMultipleValues(value: string, mapping: Record<string, string>): string[] {
   if (!value) return []
+
   return value
     .split(',')
     .map((v) => v.trim().toLowerCase())
-    .filter((v) => v !== '' && validOptions.includes(v as any))
+    .filter((v) => v !== '')
+    .map((v) => mapping[v] || v)
+    .filter((v) => Object.values(mapping).includes(v))
 }
 
 function parseYesNo(value: string): 'ya' | 'tidak' {
@@ -200,21 +180,32 @@ function parseSpreadsheetRow(row: string[]): SpreadsheetRow {
     country: (row[7] || '').trim(),
     linkedin: (row[8] || '').trim(),
     currentEmployer: (row[9] || '').trim(),
-    workField: (row[10] || '').trim(),
-    position: (row[11] || '').trim(),
+    position: (row[10] || '').trim(),
+    workField: (row[11] || '').trim(),
     contactPersonReady: (row[12] || '').trim(),
     alumniOfficerReady: (row[13] || '').trim(),
     otherContacts: (row[14] || '').trim(),
     willingToHelp: (row[15] || '').trim(),
     helpTopics: (row[16] || '').trim(),
     suggestions: (row[17] || '').trim(),
-    photoUrl: (row[18] || '').trim(),
   }
 }
 
-export async function POST() {
+export async function POST(request: NextRequest) {
   try {
-    const payload = await getPayloadHMR({ config: configPromise })
+    const isAuthorized = await verifyAdminAuth(request)
+
+    if (!isAuthorized) {
+      return NextResponse.json(
+        {
+          error: 'Unauthorized',
+          message: 'Admin access required',
+        },
+        { status: 401 },
+      )
+    }
+
+    const payload = await getPayload({ config: configPromise })
 
     const rows = await getGoogleSheetsData()
 
@@ -230,12 +221,6 @@ export async function POST() {
       created: 0,
       updated: 0,
       errors: [],
-      photoResults: {
-        success: 0,
-        failed: 0,
-        skipped: 0,
-        downloaded: 0,
-      },
     }
 
     const dataRows = rows.slice(1)
@@ -280,7 +265,7 @@ export async function POST() {
           continue
         }
 
-        if (!rowData.currentEmployer || !rowData.position || !rowData.workField) {
+        if (!rowData.currentEmployer || !rowData.position) {
           results.errors.push(`Missing work info for: ${rowData.name}`)
           continue
         }
@@ -292,44 +277,24 @@ export async function POST() {
 
         const existingAlumni = existingAlumniCache.get(rowData.email)
 
-        let photoId: number | undefined = undefined
-        if (existingAlumni?.metadata?.photo) {
-          photoId =
-            typeof existingAlumni.metadata.photo === 'number'
-              ? existingAlumni.metadata.photo
-              : existingAlumni.metadata.photo.id
-        }
-
-        if (
-          rowData.photoUrl &&
-          (rowData.photoUrl.includes('drive.google.com') ||
-            rowData.photoUrl.includes('docs.google.com'))
-        ) {
-          if (photoId) {
-            console.log(`📸 Photo exists (ID: ${photoId}), skipping`)
-            results.photoResults.skipped++
-            results.photoResults.success++
-          } else {
-            console.log(`📸 Downloading photo...`)
-            const newPhotoId = await downloadImageFromDrive(rowData.photoUrl, rowData.name, payload)
-            if (newPhotoId) {
-              photoId = newPhotoId
-              results.photoResults.downloaded++
-              results.photoResults.success++
-              console.log(`✅ Photo downloaded`)
-            } else {
-              console.log(`❌ Photo download failed`)
-              results.photoResults.failed++
-            }
-          }
-        }
-
-        const workFields = parseMultipleValues(rowData.workField, VALID_WORK_FIELDS) as Array<
+        const workFields = parseMultipleValues(rowData.workField, WORK_FIELD_MAPPING) as Array<
           (typeof VALID_WORK_FIELDS)[number]
         >
-        const helpTypes = parseMultipleValues(rowData.willingToHelp, VALID_HELP_TYPES) as Array<
+
+        const helpTypes = parseMultipleValues(rowData.willingToHelp, HELP_TYPE_MAPPING) as Array<
           (typeof VALID_HELP_TYPES)[number]
         >
+
+        if (workFields.length === 0 && rowData.workField) {
+          workFields.push('lainnya')
+        }
+
+        if (workFields.length === 0) {
+          workFields.push('lainnya')
+        }
+
+        console.log(`Work fields mapped: ${rowData.workField} -> ${workFields.join(', ')}`)
+        console.log(`Help types mapped: ${rowData.willingToHelp} -> ${helpTypes.join(', ')}`)
 
         const alumniData = {
           name: rowData.name,
@@ -341,7 +306,7 @@ export async function POST() {
               city: rowData.city || 'Unknown',
               country: rowData.country || 'Indonesia',
             },
-            phone: rowData.phone,
+            phone: rowData.phone || '',
             email: rowData.email.toLowerCase(),
             linkedin: rowData.linkedin || undefined,
           },
@@ -368,7 +333,6 @@ export async function POST() {
           },
 
           metadata: {
-            photo: photoId,
             isPublic: true,
             source: 'google-forms' as const,
             googleFormsId: rowData.timestamp,
@@ -400,6 +364,7 @@ export async function POST() {
         const rowInfo = row[1] || `Row ${results.processed + 1}`
         results.errors.push(`Error processing ${rowInfo}: ${errorMessage}`)
         console.error('Row processing error:', error)
+        console.error('Full error:', error)
       }
     }
 
@@ -411,10 +376,6 @@ export async function POST() {
       summary: {
         totalRows: validRows.length,
         successRate: `${((results.processed / validRows.length) * 100).toFixed(1)}%`,
-        photoEfficiency:
-          results.photoResults.skipped > 0
-            ? `Saved ${results.photoResults.skipped} downloads`
-            : 'All new downloads',
       },
     }
 
@@ -430,8 +391,20 @@ export async function POST() {
   }
 }
 
-export async function GET() {
+export async function GET(request: NextRequest) {
   try {
+    const isAuthorized = await verifyAdminAuth(request)
+
+    if (!isAuthorized) {
+      return NextResponse.json(
+        {
+          error: 'Unauthorized',
+          message: 'Admin access required for API testing',
+        },
+        { status: 401 },
+      )
+    }
+
     const auth = new google.auth.GoogleAuth({
       credentials: {
         client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
@@ -465,19 +438,18 @@ export async function GET() {
       'NIM (Opsional)',
       'Email Aktif',
       'Nomor HP/WA Aktif',
-      'Domisili Kota',
-      'Domisili Negara',
-      'Akun LinkedIn',
+      'Kota Domisili',
+      'Negara',
+      'Akun LinkedIn (Opsional)',
       'Nama Perusahaan/Instansi',
-      'Bidang Pekerjaan Utama',
       'Posisi/Jabatan Saat Ini',
-      'Contact Person Angkatan',
-      'Pengurus Alumni',
-      'Contact Person Lain',
-      'Bersedia Membantu Mahasiswa',
-      'Topik Bantuan',
-      'Saran/Harapan Alumni',
-      'Foto Profil (URL)',
+      'Bidang Pekerjaan Utama',
+      'Apakah bersedia menjadi contact person angkatan?',
+      'Apakah bersedia menjadi pengurus alumni?',
+      'Contact person lain di angkatanmu yang bisa dihubungi (Opsional)',
+      'Apakah bersedia dihubungi oleh mahasiswa untuk:',
+      'Topik yang bisa dibantu/dibagikan (Opsional)',
+      'Saran/harapan untuk kegiatan alumni ke depan (Opsional)',
     ]
 
     const sampleData =
@@ -503,9 +475,11 @@ export async function GET() {
       availableSheets,
       sampleData,
       endpoint: 'POST /api/admin/import-google-sheets',
-      note: 'Updated for new alumni structure with groups',
+      note: 'Updated for new alumni structure without photo functionality',
       validWorkFields: VALID_WORK_FIELDS,
       validHelpTypes: VALID_HELP_TYPES,
+      workFieldMapping: WORK_FIELD_MAPPING,
+      helpTypeMapping: HELP_TYPE_MAPPING,
     })
   } catch (error) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error'

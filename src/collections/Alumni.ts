@@ -3,7 +3,7 @@ import { CollectionConfig } from 'payload'
 export const Alumni: CollectionConfig = {
   slug: 'alumni',
   admin: {
-    useAsTitle: 'name', // ✅ PERBAIKAN: Field name di root level
+    useAsTitle: 'name',
     defaultColumns: [
       'name',
       'batch',
@@ -19,7 +19,6 @@ export const Alumni: CollectionConfig = {
     delete: () => true,
   },
   fields: [
-    // ✅ FIELD UTAMA DI ROOT LEVEL (untuk useAsTitle)
     {
       name: 'name',
       type: 'text',
@@ -32,7 +31,7 @@ export const Alumni: CollectionConfig = {
       type: 'number',
       label: 'Tahun Masuk (Angkatan)',
       required: true,
-      min: 2000,
+      min: 1987,
       max: new Date().getFullYear(),
       index: true,
     },
@@ -45,7 +44,6 @@ export const Alumni: CollectionConfig = {
       },
     },
 
-    // ✅ BAGIAN 2 - KONTAK & DOMISILI
     {
       name: 'kontak',
       type: 'group',
@@ -76,6 +74,12 @@ export const Alumni: CollectionConfig = {
           type: 'text',
           label: 'Nomor HP/WA Aktif',
           required: true,
+          access: {
+            read: ({ req: { user } }) => {
+              if (user && user.roles?.includes('admin')) return true
+              return false
+            },
+          },
         },
         {
           name: 'email',
@@ -84,6 +88,12 @@ export const Alumni: CollectionConfig = {
           required: true,
           unique: true,
           index: true,
+          access: {
+            read: ({ req: { user } }) => {
+              if (user && user.roles?.includes('admin')) return true
+              return false
+            },
+          },
         },
         {
           name: 'linkedin',
@@ -96,7 +106,6 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
-    // ✅ BAGIAN 3 - PEKERJAAN
     {
       name: 'pekerjaan',
       type: 'group',
@@ -139,7 +148,6 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
-    // ✅ BAGIAN 4 - JEJARING ALUMNI
     {
       name: 'jejaring',
       type: 'group',
@@ -177,7 +185,6 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
-    // ✅ BAGIAN 5 - KONTRIBUSI UNTUK MAHASISWA ILKOMP
     {
       name: 'kontribusi',
       type: 'group',
@@ -207,7 +214,6 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
-    // ✅ BAGIAN 6 - LAIN-LAIN
     {
       name: 'lainnya',
       type: 'group',
@@ -225,7 +231,6 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
-    // ✅ METADATA (untuk admin)
     {
       name: 'metadata',
       type: 'group',

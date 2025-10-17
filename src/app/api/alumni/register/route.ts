@@ -32,7 +32,7 @@ interface RegisterAlumniData {
   batch: number
   nim?: string
   email: string
-  phone: string
+  phone?: string
   city: string
   country?: string
   linkedin?: string
@@ -46,12 +46,6 @@ interface RegisterAlumniData {
   helpTopics?: string
   suggestions?: string
   isPublic?: boolean
-}
-
-interface RegisterResponse {
-  message: string
-  alumni: Record<string, unknown>
-  error?: string
 }
 
 function validateWorkFields(fields: string[]): Array<(typeof VALID_WORK_FIELDS)[number]> {
@@ -75,8 +69,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Nama, email, dan angkatan wajib diisi' }, { status: 400 })
     }
 
-    if (!data.phone || !data.city) {
-      return NextResponse.json({ error: 'Nomor HP dan kota wajib diisi' }, { status: 400 })
+    if (!data.city) {
+      return NextResponse.json({ error: 'Kota wajib diisi' }, { status: 400 })
     }
 
     if (!data.currentEmployer || !data.position || !data.workField || data.workField.length === 0) {
@@ -114,9 +108,18 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Format email tidak valid' }, { status: 400 })
     }
 
-    const phoneRegex = /^[\+]?[1-9][\d]{3,14}$/
-    if (!phoneRegex.test(data.phone.replace(/\s|-/g, ''))) {
-      return NextResponse.json({ error: 'Format nomor HP tidak valid' }, { status: 400 })
+    if (data.phone) {
+      const phoneRegex = /^[\+]?[\d\s\-\(\)]{7,20}$/
+      const cleanPhone = data.phone.replace(/\s|-|\(|\)/g, '')
+
+      if (!phoneRegex.test(data.phone) || cleanPhone.length < 7) {
+        return NextResponse.json(
+          {
+            error: 'Format nomor HP tidak valid. Contoh: +62812345678 atau +6591234567',
+          },
+          { status: 400 },
+        )
+      }
     }
 
     if (data.linkedin && !data.linkedin.includes('linkedin.com')) {
@@ -124,9 +127,9 @@ export async function POST(request: NextRequest) {
     }
 
     const currentYear = new Date().getFullYear()
-    if (data.batch < 2000 || data.batch > currentYear) {
+    if (data.batch < 1987 || data.batch > currentYear) {
       return NextResponse.json(
-        { error: `Angkatan harus antara 2000 - ${currentYear}` },
+        { error: `Angkatan harus antara 1987 - ${currentYear}` },
         { status: 400 },
       )
     }
@@ -150,7 +153,7 @@ export async function POST(request: NextRequest) {
             city: data.city,
             country: data.country || 'Indonesia',
           },
-          phone: data.phone,
+          phone: data.phone || '',
           email: data.email.toLowerCase(),
           linkedin: data.linkedin || undefined,
         },
@@ -190,9 +193,10 @@ export async function POST(request: NextRequest) {
         message: 'Data alumni berhasil didaftarkan!',
         alumni: {
           id: alumni.id,
-          name: alumni.name,
-          email: alumni.kontak.email,
-          batch: alumni.batch,
+          name: data.name,
+          email: data.email.toLowerCase(),
+          batch: data.batch,
+          phoneProvided: Boolean(data.phone),
         },
       },
       { status: 201 },
@@ -210,6 +214,10 @@ export async function POST(request: NextRequest) {
           { error: 'Data tidak valid, periksa kembali input Anda' },
           { status: 400 },
         )
+      }
+
+      if (error.message.includes('phone')) {
+        return NextResponse.json({ error: 'Format nomor HP tidak valid' }, { status: 400 })
       }
     }
 

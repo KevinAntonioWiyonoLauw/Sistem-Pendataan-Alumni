@@ -11,17 +11,10 @@ interface ImportApiResponse {
     created: number
     updated: number
     errors: string[]
-    photoResults: {
-      success: number
-      failed: number
-      skipped: number
-      downloaded: number
-    }
   }
   summary?: {
     totalRows: number
     successRate: string
-    photoEfficiency: string
   }
   error?: string
   message?: string
@@ -62,21 +55,26 @@ export default function ImportComponent() {
       setLoading(true)
       setError('')
 
-      const response = await fetch('/api/alumni/filter', {
+      // ✅ Gunakan endpoint Payload CMS dengan authentication
+      const response = await fetch('/api/alumni', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // ✅ Include cookies untuk auth
       })
 
       if (response.ok) {
         const data: AlumniApiResponse = await response.json()
+        console.log('Fetched alumni data:', data) // ✅ Debug log
         setAlumni(data.docs || [])
       } else {
         const errorData: ErrorResponse = await response.json()
+        console.error('Error fetching alumni:', errorData) // ✅ Debug log
         setError(errorData.message || errorData.error || 'Gagal memuat data alumni')
       }
-    } catch (_error) {
+    } catch (fetchError) {
+      console.error('Fetch error:', fetchError) // ✅ Debug log
       setError('Terjadi kesalahan saat memuat data')
     } finally {
       setLoading(false)
@@ -94,25 +92,28 @@ export default function ImportComponent() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include', // ✅ Include cookies untuk auth
       })
 
       const result: ImportApiResponse = await response.json()
+      console.log('Import result:', result) // ✅ Debug log
 
       if (response.ok && result.success) {
         const processed = result.results?.processed || 0
         const created = result.results?.created || 0
         const updated = result.results?.updated || 0
-        const photoDownloaded = result.results?.photoResults.downloaded || 0
 
         setMessage(
-          `Import berhasil! Diproses: ${processed}, Dibuat: ${created}, Diperbarui: ${updated}, Foto didownload: ${photoDownloaded}`,
+          `Import berhasil! Diproses: ${processed}, Dibuat: ${created}, Diperbarui: ${updated}`,
         )
 
+        // ✅ Refresh data setelah import
         await fetchAlumni()
       } else {
         setError(result.error || result.message || 'Terjadi kesalahan saat import')
       }
-    } catch (_error) {
+    } catch (importError) {
+      console.error('Import error:', importError) // ✅ Debug log
       setError('Terjadi kesalahan saat import data')
     } finally {
       setImporting(false)
@@ -143,16 +144,20 @@ export default function ImportComponent() {
     return parts.length > 0 ? parts.join(', ') : '-'
   }
 
-  const getHelpTypesDisplay = (willingToHelp?: string[]): string => {
-    if (!willingToHelp || willingToHelp.length === 0) return 'Tidak tersedia'
-    return willingToHelp.join(', ')
-  }
-
   const getPhotoUrl = (photo: any): string | null => {
     if (!photo) return null
     if (typeof photo === 'string') return photo
     if (typeof photo === 'object' && photo.url) return photo.url
     return null
+  }
+
+  // ✅ Safe email display untuk admin
+  const getEmailDisplay = (alumnus: Alumnus): string => {
+    // Jika admin, tampilkan email penuh
+    if (alumnus.kontak?.email) {
+      return alumnus.kontak.email
+    }
+    return 'Email tersembunyi'
   }
 
   return (
@@ -253,6 +258,7 @@ export default function ImportComponent() {
         ) : alumni.length === 0 ? (
           <div className="text-center py-8 text-gray-600">
             <p>Belum ada alumni yang terdaftar</p>
+            <p className="text-xs mt-2">Debug: Coba refresh atau cek console untuk error details</p>
           </div>
         ) : (
           <div className="bg-white shadow rounded-lg overflow-hidden">
@@ -320,7 +326,7 @@ export default function ImportComponent() {
                           {alumnus.batch}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                          {alumnus.kontak.email}
+                          {getEmailDisplay(alumnus)}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap">
                           <span

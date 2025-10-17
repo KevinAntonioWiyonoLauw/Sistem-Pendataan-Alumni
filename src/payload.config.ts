@@ -20,6 +20,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
+      beforeNavLinks: ['./components/AdminCustomNav'],
       logout: {
         Button: './components/AdminLogoutButton',
       },
@@ -27,7 +28,7 @@ export default buildConfig({
   },
   upload: {
     limits: {
-      fileSize: 5000000, // 5MB
+      fileSize: 5000000,
     },
     abortOnLimit: false,
     useTempFiles: false,
