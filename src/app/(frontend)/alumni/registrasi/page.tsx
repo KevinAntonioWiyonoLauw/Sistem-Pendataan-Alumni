@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import AlumniRegistrationForm from '@/components/alumni/AlumniRegistrationForm'
+import AlumniRegistrationForm from '@/components/alumni/alumni-registration-form'
 import type { RegisterAlumniData } from '@/types/alumni'
 
 export default function AlumniRegistrationPage() {
@@ -55,7 +55,7 @@ export default function AlumniRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen  py-20">
       <div className="max-w-4xl mx-auto px-4">
         {/* Header */}
         <div className="text-center mb-8">
@@ -106,7 +106,7 @@ export default function AlumniRegistrationPage() {
         )}
 
         {/* Registration Form */}
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-gray-700 rounded-xl shadow-lg p-8">
           <AlumniRegistrationForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </div>
 

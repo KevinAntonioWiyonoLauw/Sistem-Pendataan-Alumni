@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react'
 import Image from 'next/image'
-import AlumniFilter from '@/components/alumni/AlumniFilter'
+import AlumniFilter from '@/components/alumni/alumni-filter'
 import { Alumni, AlumniDisplay, convertToDisplay } from '@/types/alumni'
 
 // Filter options interface
@@ -145,27 +145,25 @@ export default function AlumniDirectoryPage() {
   // ✅ Loading state
   if (loading && !initialized) {
     return (
-      <div className="min-h-screen bg-gray-50 py-8">
-        <div className="max-w-6xl mx-auto px-4">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500 mx-auto"></div>
-            <p className="mt-4 text-gray-600">Memuat data alumni...</p>
-          </div>
+      <div className="h-screen  py-8 items-center flex justify-center">
+        <div className="max-w-6xl mx-auto px-4 flex flex-col items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-gray-500 mx-auto"></div>
+          <p className="mt-4 text-gray-600">Memuat data alumni...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen py-20">
       <div className="max-w-7xl mx-auto px-4">
         {/* Header */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold text-gray-900 text-center mb-2">
             Direktori Alumni Ilkom
           </h1>
-          <p className="text-gray-600 text-center">
-            Temukan dan terhubung dengan alumni Ilmu Komputer
+          <p className=" text-center">
+            Temukan dan hubungi alumni Ilmu Komputer
           </p>
         </div>
 
@@ -188,7 +186,7 @@ export default function AlumniDirectoryPage() {
 
         {/* Stats */}
         <div className="mb-6 text-center">
-          <p className="text-gray-600">
+          <p className="">
             Menampilkan <span className="font-semibold">{alumni.length}</span> alumni
           </p>
         </div>
@@ -198,7 +196,7 @@ export default function AlumniDirectoryPage() {
           {alumni.map((person) => (
             <div
               key={person.id}
-              className="bg-white rounded-xl shadow-md hover:shadow-lg transition-shadow p-6"
+              className="bg-gray-700 rounded-xl shadow-md hover:shadow-lg transition-shadow p-6"
             >
               {/* Profile Header */}
               <div className="flex items-start space-x-4 mb-4">
@@ -212,7 +210,7 @@ export default function AlumniDirectoryPage() {
                     className="rounded-full object-cover border-4 border-gray-100"
                   />
                 ) : (
-                  <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-full flex items-center justify-center border-4 border-gray-100">
+                  <div className="w-20 h-20 bg-gradient-to-br from-blue-400 to-purple-500 rounded-lg flex items-center justify-center border-2 border-gray-100">
                     <span className="text-white text-2xl font-bold">
                       {person.name.charAt(0).toUpperCase()}
                     </span>
@@ -221,7 +219,7 @@ export default function AlumniDirectoryPage() {
 
                 {/* Basic Info */}
                 <div className="flex-1 min-w-0">
-                  <h3 className="text-xl font-semibold text-gray-900 truncate">{person.name}</h3>
+                  <h3 className="text-xl font-semibold truncate">{person.name}</h3>
                   <p className="text-blue-600 font-medium">Angkatan {person.batch}</p>
                   {person.nim && <p className="text-sm text-gray-500">NIM: {person.nim}</p>}
                 </div>
@@ -230,9 +228,9 @@ export default function AlumniDirectoryPage() {
               {/* Work Info */}
               <div className="space-y-3">
                 {/* Current Position */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm font-medium text-gray-900 truncate">{person.position}</p>
-                  <p className="text-sm text-gray-600 truncate">{person.currentEmployer}</p>
+                <div className="bg-gray-500 rounded-lg p-3">
+                  <p className="text-sm font-medium truncate">{person.position}</p>
+                  <p className="text-sm text-gray-600 truncate">@ {person.currentEmployer}</p>
                 </div>
 
                 {/* Work Fields */}
@@ -255,7 +253,7 @@ export default function AlumniDirectoryPage() {
                 )}
 
                 {/* Location */}
-                <div className="flex items-center text-sm text-gray-600">
+                <div className="flex items-center text-sm text-gray-100">
                   <svg
                     className="w-4 h-4 mr-1"
                     fill="none"
@@ -285,10 +283,10 @@ export default function AlumniDirectoryPage() {
                   {/* Email */}
                   <a
                     href={`mailto:${person.email}`}
-                    className="flex items-center text-sm text-gray-600 hover:text-blue-600 transition-colors"
+                    className="flex items-center text-sm text-gray-100 hover:text-red-600 transition-colors"
                     title="Email"
                   >
-                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path
                         strokeLinecap="round"
                         strokeLinejoin="round"
@@ -301,7 +299,7 @@ export default function AlumniDirectoryPage() {
                   {/* Phone */}
                   <a
                     href={`https://wa.me/${person.phone.replace(/\D/g, '')}`}
-                    className="flex items-center text-sm text-gray-600 hover:text-green-600 transition-colors"
+                    className="flex items-center text-sm text-gray-100 hover:text-green-600 transition-colors"
                     title="WhatsApp"
                     target="_blank"
                     rel="noopener noreferrer"
@@ -315,7 +313,7 @@ export default function AlumniDirectoryPage() {
                   {person.linkedin && (
                     <a
                       href={person.linkedin}
-                      className="flex items-center text-sm text-gray-600 hover:text-blue-700 transition-colors"
+                      className="flex items-center text-sm text-gray-100 hover:text-blue-700 transition-colors"
                       title="LinkedIn"
                       target="_blank"
                       rel="noopener noreferrer"
@@ -333,7 +331,7 @@ export default function AlumniDirectoryPage() {
                         className="px-2 py-1 text-xs bg-green-100 text-green-800 rounded-full"
                         title="Contact Person"
                       >
-                        CP
+                        Contact Person
                       </span>
                     )}
                     {person.alumniOfficerReady && (
@@ -341,7 +339,7 @@ export default function AlumniDirectoryPage() {
                         className="px-2 py-1 text-xs bg-purple-100 text-purple-800 rounded-full"
                         title="Pengurus Alumni"
                       >
-                        PA
+                        Pengurus Alumni
                       </span>
                     )}
                   </div>

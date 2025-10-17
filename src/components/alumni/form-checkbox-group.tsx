@@ -33,11 +33,11 @@ export default function FormCheckboxGroup({
   return (
     <div>
       <div className="mb-3">
-        <span className="block text-sm font-medium text-gray-700">
+        <span className="block text-sm font-medium ">
           {label}
           {required && <span className="text-red-500 ml-1">*</span>}
         </span>
-        {description && <p className="text-sm text-gray-600 mt-1">{description}</p>}
+        {description && <p className="text-sm  mt-1">{description}</p>}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -52,7 +52,7 @@ export default function FormCheckboxGroup({
             />
             <label
               htmlFor={`${name}-${option.value}`}
-              className="ml-2 text-sm text-gray-700 cursor-pointer"
+              className="ml-2 text-sm  cursor-pointer"
             >
               {option.label}
             </label>

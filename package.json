@@ -26,6 +26,7 @@
     "@payloadcms/richtext-lexical": "3.59.1",
     "@payloadcms/storage-vercel-blob": "^3.59.1",
     "@payloadcms/ui": "3.59.1",
+    "clsx": "^2.1.1",
     "cross-env": "^7.0.3",
     "googleapis": "^162.0.0",
     "graphql": "^16.8.1",
@@ -33,7 +34,8 @@
     "payload": "3.59.1",
     "react": "19.1.0",
     "react-dom": "19.1.0",
-    "sharp": "0.34.2"
+    "sharp": "0.34.2",
+    "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",

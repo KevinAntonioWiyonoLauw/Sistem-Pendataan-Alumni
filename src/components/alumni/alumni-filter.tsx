@@ -1,6 +1,7 @@
 // src/components/alumni/AlumniFilter.tsx
 'use client'
 
+import Link from 'next/link'
 import { useState, useEffect } from 'react'
 
 interface FilterOptions {
@@ -90,27 +91,27 @@ export default function AlumniFilter({
   const hasActiveFilters = Object.values(filters).some((value) => value !== '')
 
   return (
-    <div className="bg-white rounded-xl shadow-md p-6 mb-8">
-      <div className="flex justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold text-gray-900">Filter Alumni</h3>
-        {hasActiveFilters && (
-          <span className="px-3 py-1 bg-blue-100 text-blue-800 text-sm rounded-full">
-            Filter aktif
-          </span>
-        )}
+    <div className="bg-gray-700 rounded-xl shadow-md p-6 mb-8">
+      <div className="flex flex-row justify-between items-center mb-6">
+        <h3 className="text-lg font-semibold">Filter Alumni</h3>
+        <Link href="/alumni/registrasi">
+          <button className="text-sm text-white rounded-lg hover:text-white px-4 cursor-pointer py-3 bg-gray-500 hover:bg-gray-600">
+            Daftar
+          </button>
+        </Link>
       </div>
 
       <div className="space-y-6">
         {/* Search Bar */}
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">Cari Alumni</label>
+          <label className="block text-sm font-medium mb-2">Cari Alumni</label>
           <div className="relative">
             <input
               type="text"
               placeholder="Cari berdasarkan nama, email, perusahaan, atau posisi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
@@ -134,11 +135,11 @@ export default function AlumniFilter({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
           {/* Batch Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Angkatan</label>
+            <label className="block text-sm font-medium text-gray-100 mb-2">Angkatan</label>
             <select
               value={filters.batch}
               onChange={(e) => handleFilterChange('batch', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Semua Angkatan</option>
               {batches.map((batch) => (
@@ -151,11 +152,11 @@ export default function AlumniFilter({
 
           {/* City Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Lokasi</label>
+            <label className="block text-sm font-medium text-gray-100 mb-2">Lokasi</label>
             <select
               value={filters.city}
               onChange={(e) => handleFilterChange('city', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400  cursor-pointer"
             >
               <option value="">Semua Lokasi</option>
               {cities.map((city) => (
@@ -168,11 +169,11 @@ export default function AlumniFilter({
 
           {/* Work Field Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Bidang Pekerjaan</label>
+            <label className="block text-sm font-medium text-gray-100 mb-2">Bidang Pekerjaan</label>
             <select
               value={filters.workField}
               onChange={(e) => handleFilterChange('workField', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
             >
               <option value="">Semua Bidang</option>
               {workFields.map((field) => (
@@ -185,13 +186,13 @@ export default function AlumniFilter({
 
           {/* Employer Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">
+            <label className="block text-sm font-medium text-gray-100 mb-2">
               Perusahaan/Instansi
             </label>
             <select
               value={filters.currentEmployer}
               onChange={(e) => handleFilterChange('currentEmployer', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
             >
               <option value="">Semua Perusahaan</option>
               {employers.map((employer) => (
@@ -204,11 +205,11 @@ export default function AlumniFilter({
 
           {/* Position Filter */}
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">Posisi/Jabatan</label>
+            <label className="block text-sm font-medium text-gray-100 mb-2">Posisi/Jabatan</label>
             <select
               value={filters.position}
               onChange={(e) => handleFilterChange('position', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
             >
               <option value="">Semua Posisi</option>
               {positions.map((position) => (
@@ -223,7 +224,7 @@ export default function AlumniFilter({
           <div className="flex items-end">
             <button
               onClick={clearFilters}
-              className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition-colors"
+              className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 cursor-pointer transition-colors"
             >
               Reset Filter
             </button>
@@ -235,7 +236,7 @@ export default function AlumniFilter({
           <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
             <span className="text-sm text-gray-600">Filter aktif:</span>
             {filters.search && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-700 text-sm rounded-md">
+              <span className="px-2 py-1 bg-gray-100 text-gray-100 text-sm rounded-md">
                 Pencarian: "{filters.search}"
               </span>
             )}

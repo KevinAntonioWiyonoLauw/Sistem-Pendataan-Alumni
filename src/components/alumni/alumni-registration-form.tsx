@@ -1,11 +1,11 @@
 'use client'
 
 import { useState } from 'react'
-import FormSection from './FormSection'
-import FormInput from './FormInput'
-import FormSelect from './FormSelect'
-import FormTextarea from './FormTextarea'
-import FormCheckboxGroup from './FormCheckboxGroup'
+import FormSection from './form-section'
+import FormInput from './form-input'
+import FormSelect from './form-select'
+import FormTextarea from './form-text-area'
+import FormCheckboxGroup from './form-checkbox-group'
 import type { RegisterAlumniData } from '@/types/alumni'
 
 interface AlumniRegistrationFormProps {
@@ -343,10 +343,10 @@ export default function AlumniRegistrationForm({
             <label htmlFor="isPublic" className="text-sm font-medium text-gray-900">
               Tampilkan profil saya di website alumni
             </label>
-            <p className="text-sm text-gray-600 mt-1">
+            <div className="text-sm text-black mt-1">
               Dengan mencentang ini, profil Anda akan ditampilkan di direktori alumni dan dapat
               dilihat oleh alumni lain serta mahasiswa.
-            </p>
+            </div>
           </div>
         </div>
       </div>
@@ -358,8 +358,8 @@ export default function AlumniRegistrationForm({
           disabled={isSubmitting}
           className={`px-8 py-3 rounded-lg font-semibold text-white transition-colors ${
             isSubmitting
-              ? 'bg-gray-400 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 focus:ring-4 focus:ring-blue-500 focus:ring-opacity-50'
+              ? 'bg-gray-200 cursor-not-allowed'
+              : 'bg-gray-500 hover:bg-gray-600 focus:ring-4 cursor-pointer focus:ring-blue-500 focus:ring-opacity-50'
           }`}
         >
           {isSubmitting ? (
