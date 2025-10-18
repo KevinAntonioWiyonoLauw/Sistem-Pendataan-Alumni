@@ -194,7 +194,7 @@ export const convertToDisplay = (alumni: Alumni): AlumniDisplay => {
 export const generateBatchOptions = () => {
   const currentYear = new Date().getFullYear()
   const options = []
-  for (let year = currentYear; year >= 2000; year--) {
+  for (let year = currentYear; year >= 1987; year--) {
     options.push({ value: year.toString(), label: `Angkatan ${year}` })
   }
   return options
@@ -236,7 +236,7 @@ export const validateAlumniData = (data: RegisterAlumniData): string[] => {
   if (!data.currentEmployer?.trim()) errors.push('Nama perusahaan wajib diisi')
   if (!data.position?.trim()) errors.push('Posisi/jabatan wajib diisi')
   if (!data.workField?.length) errors.push('Pilih minimal satu bidang pekerjaan')
-  if (data.batch < 2000 || data.batch > new Date().getFullYear()) {
+  if (data.batch < 1987 || data.batch > new Date().getFullYear()) {
     errors.push('Tahun masuk tidak valid')
   }
   if (data.workField?.some((field) => !isValidWorkField(field))) {

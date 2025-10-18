@@ -83,7 +83,7 @@ export default function AlumniRegistrationForm({
     if (!formData.currentEmployer.trim()) newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
     if (!formData.position.trim()) newErrors.position = 'Posisi/jabatan wajib diisi'
     if (formData.workField.length === 0) newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
-    if (formData.batch < 2000 || formData.batch > new Date().getFullYear()) {
+    if (formData.batch < 1987 || formData.batch > new Date().getFullYear()) {
       newErrors.batch = 'Tahun masuk tidak valid'
     }
 
@@ -101,7 +101,7 @@ export default function AlumniRegistrationForm({
   const generateBatchOptions = () => {
     const currentYear = new Date().getFullYear()
     const options = []
-    for (let year = currentYear; year >= 2000; year--) {
+    for (let year = currentYear; year >= 1987; year--) {
       options.push({ value: year.toString(), label: `Angkatan ${year}` })
     }
     return options
@@ -109,7 +109,6 @@ export default function AlumniRegistrationForm({
 
   return (
     <form onSubmit={handleSubmit} className="space-y-8">
-      {/* Bagian 1 - Identitas Diri */}
       <FormSection
         title="Bagian 1 - Identitas Diri"
         description="Informasi dasar tentang identitas Anda"
@@ -147,7 +146,6 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
-      {/* Bagian 2 - Kontak & Domisili */}
       <FormSection
         title="Bagian 2 - Kontak & Domisili"
         description="Informasi kontak dan tempat tinggal saat ini"
@@ -204,7 +202,6 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
-      {/* Bagian 3 - Pekerjaan */}
       <FormSection
         title="Bagian 3 - Pekerjaan"
         description="Informasi pekerjaan dan karir saat ini"
@@ -245,7 +242,6 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
-      {/* Bagian 4 - Jejaring Alumni */}
       <FormSection
         title="Bagian 4 - Jejaring Alumni"
         description="Ketersediaan untuk aktivitas jejaring alumni"
@@ -288,7 +284,6 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
-      {/* Bagian 5 - Kontribusi untuk Mahasiswa */}
       <FormSection
         title="Bagian 5 - Kontribusi untuk Mahasiswa Ilkomp"
         description="Ketersediaan membantu mahasiswa junior"
@@ -314,7 +309,6 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
-      {/* Bagian 6 - Lain-lain */}
       <FormSection
         title="Bagian 6 - Lain-lain"
         description="Saran dan masukan untuk kegiatan alumni"
@@ -329,7 +323,6 @@ export default function AlumniRegistrationForm({
         />
       </FormSection>
 
-      {/* Privacy Setting */}
       <div className="bg-blue-50 rounded-lg p-6">
         <div className="flex items-start space-x-3">
           <input
@@ -351,7 +344,6 @@ export default function AlumniRegistrationForm({
         </div>
       </div>
 
-      {/* Submit Button */}
       <div className="flex justify-center pt-6">
         <button
           type="submit"
