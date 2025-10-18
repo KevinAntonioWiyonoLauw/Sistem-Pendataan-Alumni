@@ -63,7 +63,7 @@ export default function AlumniRegistrationForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const handleInputChange = (name: string, value: any) => {
+  const handleInputChange = (name: string, value: string | number | boolean | string[]) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) {
       setErrors((prev) => ({ ...prev, [name]: '' }))

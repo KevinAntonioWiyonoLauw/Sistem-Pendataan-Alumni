@@ -34,7 +34,6 @@ export default function AlumniRegistrationPage() {
           message: result.message || 'Registrasi berhasil! Data Anda telah tersimpan.',
         })
 
-        // Redirect ke halaman alumni setelah 3 detik
         setTimeout(() => {
           router.push('/alumni')
         }, 3000)
@@ -44,7 +43,8 @@ export default function AlumniRegistrationPage() {
           message: result.error || 'Terjadi kesalahan saat registrasi',
         })
       }
-    } catch (error) {
+    } catch (_error) {
+      console.error('Registration error:', _error)
       setSubmitStatus({
         type: 'error',
         message: 'Terjadi kesalahan koneksi. Silakan coba lagi.',
@@ -55,9 +55,8 @@ export default function AlumniRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen  py-20">
+    <div className="min-h-screen py-20">
       <div className="max-w-4xl mx-auto px-4">
-        {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-4xl font-bold text-gray-900 mb-4">Registrasi Alumni Ilmu Komputer</h1>
           <p className="text-lg text-gray-600 max-w-2xl mx-auto">
@@ -66,7 +65,6 @@ export default function AlumniRegistrationPage() {
           </p>
         </div>
 
-        {/* Status Messages */}
         {submitStatus.type && (
           <div
             className={`mb-6 p-4 rounded-lg ${
@@ -105,12 +103,10 @@ export default function AlumniRegistrationPage() {
           </div>
         )}
 
-        {/* Registration Form */}
         <div className="bg-gray-700 rounded-xl shadow-lg p-8">
           <AlumniRegistrationForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
         </div>
 
-        {/* Footer Info */}
         <div className="mt-8 text-center text-sm text-gray-500">
           <p>
             Data yang Anda berikan akan dijaga kerahasiaannya dan hanya digunakan untuk keperluan

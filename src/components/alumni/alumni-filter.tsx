@@ -1,8 +1,7 @@
-// src/components/alumni/AlumniFilter.tsx
 'use client'
 
 import Link from 'next/link'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 
 interface FilterOptions {
   batch: string
@@ -57,24 +56,30 @@ export default function AlumniFilter({
 
   const [searchTerm, setSearchTerm] = useState('')
 
-  // Debounced search
   useEffect(() => {
     const delayedSearch = setTimeout(() => {
-      const newFilters = { ...filters, search: searchTerm }
-      setFilters(newFilters)
-      onFilterChange(newFilters)
+      setFilters((prevFilters) => {
+        const newFilters = { ...prevFilters, search: searchTerm }
+        onFilterChange(newFilters)
+        return newFilters
+      })
     }, 500)
 
     return () => clearTimeout(delayedSearch)
-  }, [searchTerm])
+  }, [searchTerm, onFilterChange])
 
-  const handleFilterChange = (key: keyof FilterOptions, value: string) => {
-    const newFilters = { ...filters, [key]: value }
-    setFilters(newFilters)
-    onFilterChange(newFilters)
-  }
+  const handleFilterChange = useCallback(
+    (key: keyof FilterOptions, value: string) => {
+      setFilters((prevFilters) => {
+        const newFilters = { ...prevFilters, [key]: value }
+        onFilterChange(newFilters)
+        return newFilters
+      })
+    },
+    [onFilterChange],
+  )
 
-  const clearFilters = () => {
+  const clearFilters = useCallback(() => {
     const emptyFilters: FilterOptions = {
       batch: '',
       city: '',
@@ -86,9 +91,11 @@ export default function AlumniFilter({
     setFilters(emptyFilters)
     setSearchTerm('')
     onFilterChange(emptyFilters)
-  }
+  }, [onFilterChange])
 
   const hasActiveFilters = Object.values(filters).some((value) => value !== '')
+
+  const sortedBatches = [...batches].sort((a, b) => parseInt(b) - parseInt(a))
 
   return (
     <div className="bg-gray-700 rounded-xl shadow-md p-6 mb-8">
@@ -102,7 +109,6 @@ export default function AlumniFilter({
       </div>
 
       <div className="space-y-6">
-        {/* Search Bar */}
         <div>
           <label className="block text-sm font-medium mb-2">Cari Alumni</label>
           <div className="relative">
@@ -131,9 +137,7 @@ export default function AlumniFilter({
           </div>
         </div>
 
-        {/* Filter Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {/* Batch Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-100 mb-2">Angkatan</label>
             <select
@@ -142,15 +146,19 @@ export default function AlumniFilter({
               className="w-full px-3 py-2 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
             >
               <option value="">Semua Angkatan</option>
-              {batches.map((batch) => (
+              {sortedBatches.map((batch) => (
                 <option key={batch} value={batch}>
                   Angkatan {batch}
                 </option>
               ))}
             </select>
+            {sortedBatches.length > 0 && (
+              <p className="text-xs text-gray-400 mt-1">
+                {sortedBatches[sortedBatches.length - 1]} - {sortedBatches[0]}
+              </p>
+            )}
           </div>
 
-          {/* City Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-100 mb-2">Lokasi</label>
             <select
@@ -167,7 +175,6 @@ export default function AlumniFilter({
             </select>
           </div>
 
-          {/* Work Field Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-100 mb-2">Bidang Pekerjaan</label>
             <select
@@ -184,7 +191,6 @@ export default function AlumniFilter({
             </select>
           </div>
 
-          {/* Employer Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-100 mb-2">
               Perusahaan/Instansi
@@ -203,7 +209,6 @@ export default function AlumniFilter({
             </select>
           </div>
 
-          {/* Position Filter */}
           <div>
             <label className="block text-sm font-medium text-gray-100 mb-2">Posisi/Jabatan</label>
             <select
@@ -220,7 +225,6 @@ export default function AlumniFilter({
             </select>
           </div>
 
-          {/* Clear Button */}
           <div className="flex items-end">
             <button
               onClick={clearFilters}
@@ -231,13 +235,12 @@ export default function AlumniFilter({
           </div>
         </div>
 
-        {/* Active Filters Display */}
         {hasActiveFilters && (
           <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
             <span className="text-sm text-gray-600">Filter aktif:</span>
             {filters.search && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-100 text-sm rounded-md">
-                Pencarian: "{filters.search}"
+              <span className="px-2 py-1 bg-gray-100 text-gray-800 text-sm rounded-md">
+                Pencarian: &quot;{filters.search}&quot;
               </span>
             )}
             {filters.batch && (
