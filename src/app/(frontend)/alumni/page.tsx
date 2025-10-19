@@ -5,7 +5,6 @@ import Image from 'next/image'
 import AlumniFilter from '@/components/alumni/alumni-filter'
 import { Alumni, AlumniDisplay, convertToDisplay } from '@/types/alumni'
 
-// Filter options interface
 interface FilterOptions {
   batch: string
   city: string
@@ -15,7 +14,6 @@ interface FilterOptions {
   search: string
 }
 
-// Work field labels mapping
 const workFieldLabels: Record<string, string> = {
   akademisi: 'Akademisi',
   pemerintah: 'Pemerintah',
@@ -162,9 +160,7 @@ export default function AlumniDirectoryPage() {
           <h1 className="text-4xl font-bold text-gray-900 text-center mb-2">
             Direktori Alumni Ilkom
           </h1>
-          <p className=" text-center">
-            Temukan dan hubungi alumni Ilmu Komputer
-          </p>
+          <p className=" text-center">Temukan dan hubungi alumni Ilmu Komputer</p>
         </div>
 
         {/* Filter Component */}
