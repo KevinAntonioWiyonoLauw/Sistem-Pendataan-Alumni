@@ -195,10 +195,16 @@ textarea::placeholder {
   }
 }
 
+/* === Override untuk Formulir Alumni === */
 .form-page {
-  background-color: #f9fafb;
-  color: #111827;
+  background-color: #111827 !important; /* tetap dark mode futuristik */
+  color: #f9fafb !important; /* teks default putih */
 }
+
+.form-page h2 {
+  color: #ffffff !important; /* biar tulisan “Formulir Pendaftaran Alumni” putih */
+}
+
 
 .form-container {
   background-color: #ffffff;

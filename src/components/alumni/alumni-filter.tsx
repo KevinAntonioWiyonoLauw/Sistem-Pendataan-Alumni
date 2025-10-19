@@ -94,30 +94,37 @@ export default function AlumniFilter({
   }, [onFilterChange])
 
   const hasActiveFilters = Object.values(filters).some((value) => value !== '')
-
   const sortedBatches = [...batches].sort((a, b) => parseInt(b) - parseInt(a))
 
   return (
-    <div className="bg-gray-700 rounded-xl shadow-md p-6 mb-8">
-      <div className="flex flex-row justify-between items-center mb-6">
-        <h3 className="text-lg font-semibold">Filter Alumni</h3>
-        <Link href="/alumni/registrasi">
-          <button className="text-sm text-white rounded-lg hover:text-white px-4 cursor-pointer py-3 bg-gray-500 hover:bg-gray-600">
-            Daftar
-          </button>
-        </Link>
-      </div>
+    <div className="bg-gradient-to-b from-gray-950 via-gray-900 to-gray-800 text-white rounded-2xl shadow-2xl p-8 relative overflow-hidden transition-all duration-300">
+      {/* subtle glow accents */}
+      <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full"></div>
+      <div className="absolute -bottom-32 right-0 w-72 h-72 bg-purple-500/20 blur-3xl rounded-full"></div>
 
-      <div className="space-y-6">
-        <div>
-          <label className="block text-sm font-medium mb-2">Cari Alumni</label>
+      <div className="relative z-10">
+        {/* Header */}
+        <div className="flex flex-row justify-between items-center mb-8">
+          <h3 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
+            Filter Alumni
+          </h3>
+          <Link href="/alumni/registrasi">
+            <button className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow-md hover:shadow-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200">
+              + Daftar Alumni
+            </button>
+          </Link>
+        </div>
+
+        {/* Search */}
+        <div className="mb-6">
+          <label className="block text-sm font-medium text-gray-300 mb-2">Cari Alumni</label>
           <div className="relative">
             <input
               type="text"
               placeholder="Cari berdasarkan nama, email, perusahaan, atau posisi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-10 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 focus:border-transparent"
+              className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-800/60 border border-gray-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 text-white placeholder-gray-400 transition-all duration-200"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
@@ -137,136 +144,66 @@ export default function AlumniFilter({
           </div>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-100 mb-2">Angkatan</label>
-            <select
-              value={filters.batch}
-              onChange={(e) => handleFilterChange('batch', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400"
-            >
-              <option value="">Semua Angkatan</option>
-              {sortedBatches.map((batch) => (
-                <option key={batch} value={batch}>
-                  Angkatan {batch}
-                </option>
-              ))}
-            </select>
-            {sortedBatches.length > 0 && (
-              <p className="text-xs text-gray-400 mt-1">
-                {sortedBatches[sortedBatches.length - 1]} - {sortedBatches[0]}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-100 mb-2">Lokasi</label>
-            <select
-              value={filters.city}
-              onChange={(e) => handleFilterChange('city', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400  cursor-pointer"
-            >
-              <option value="">Semua Lokasi</option>
-              {cities.map((city) => (
-                <option key={city} value={city}>
-                  {city}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-100 mb-2">Bidang Pekerjaan</label>
-            <select
-              value={filters.workField}
-              onChange={(e) => handleFilterChange('workField', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
-            >
-              <option value="">Semua Bidang</option>
-              {workFields.map((field) => (
-                <option key={field} value={field}>
-                  {workFieldLabels[field] || field}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-100 mb-2">
-              Perusahaan/Instansi
-            </label>
-            <select
-              value={filters.currentEmployer}
-              onChange={(e) => handleFilterChange('currentEmployer', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
-            >
-              <option value="">Semua Perusahaan</option>
-              {employers.map((employer) => (
-                <option key={employer} value={employer}>
-                  {employer}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-gray-100 mb-2">Posisi/Jabatan</label>
-            <select
-              value={filters.position}
-              onChange={(e) => handleFilterChange('position', e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-400 cursor-pointer"
-            >
-              <option value="">Semua Posisi</option>
-              {positions.map((position) => (
-                <option key={position} value={position}>
-                  {position}
-                </option>
-              ))}
-            </select>
-          </div>
+        {/* Filter Dropdowns */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+          {[
+            {
+              label: 'Angkatan',
+              key: 'batch',
+              options: sortedBatches.map((b) => `Angkatan ${b}`),
+              values: sortedBatches,
+            },
+            { label: 'Lokasi', key: 'city', options: cities, values: cities },
+            {
+              label: 'Bidang Pekerjaan',
+              key: 'workField',
+              options: workFields.map((f) => workFieldLabels[f] || f),
+              values: workFields,
+            },
+            { label: 'Perusahaan/Instansi', key: 'currentEmployer', options: employers, values: employers },
+            { label: 'Posisi/Jabatan', key: 'position', options: positions, values: positions },
+          ].map(({ label, key, options, values }) => (
+            <div key={key}>
+              <label className="block text-sm font-medium text-gray-300 mb-2">{label}</label>
+              <select
+                value={filters[key as keyof FilterOptions]}
+                onChange={(e) => handleFilterChange(key as keyof FilterOptions, e.target.value)}
+                className="w-full px-3 py-2 bg-gray-800/60 border border-gray-600 rounded-lg text-white cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 transition-all duration-200"
+              >
+                <option value="">Semua {label}</option>
+                {options.map((option, i) => (
+                  <option key={option} value={values[i]}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+            </div>
+          ))}
 
           <div className="flex items-end">
             <button
               onClick={clearFilters}
-              className="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 cursor-pointer transition-colors"
+              className="w-full px-4 py-2 bg-gray-700 hover:bg-gray-600 border border-gray-600 rounded-lg transition-all duration-200"
             >
               Reset Filter
             </button>
           </div>
         </div>
 
+        {/* Active Filters */}
         {hasActiveFilters && (
-          <div className="flex flex-wrap gap-2 pt-4 border-t border-gray-200">
-            <span className="text-sm text-gray-600">Filter aktif:</span>
-            {filters.search && (
-              <span className="px-2 py-1 bg-gray-100 text-gray-800 text-sm rounded-md">
-                Pencarian: &quot;{filters.search}&quot;
-              </span>
-            )}
-            {filters.batch && (
-              <span className="px-2 py-1 bg-blue-100 text-blue-700 text-sm rounded-md">
-                Angkatan: {filters.batch}
-              </span>
-            )}
-            {filters.city && (
-              <span className="px-2 py-1 bg-green-100 text-green-700 text-sm rounded-md">
-                Lokasi: {filters.city}
-              </span>
-            )}
-            {filters.workField && (
-              <span className="px-2 py-1 bg-purple-100 text-purple-700 text-sm rounded-md">
-                Bidang: {workFieldLabels[filters.workField] || filters.workField}
-              </span>
-            )}
-            {filters.currentEmployer && (
-              <span className="px-2 py-1 bg-orange-100 text-orange-700 text-sm rounded-md">
-                Perusahaan: {filters.currentEmployer}
-              </span>
-            )}
-            {filters.position && (
-              <span className="px-2 py-1 bg-pink-100 text-pink-700 text-sm rounded-md">
-                Posisi: {filters.position}
-              </span>
+          <div className="flex flex-wrap gap-2 pt-6 border-t border-gray-700 mt-6">
+            <span className="text-sm text-gray-400">Filter aktif:</span>
+            {Object.entries(filters).map(
+              ([key, value]) =>
+                value && (
+                  <span
+                    key={key}
+                    className="px-2 py-1 text-sm rounded-md bg-cyan-900/40 border border-cyan-700 text-cyan-300"
+                  >
+                    {key}: {value}
+                  </span>
+                ),
             )}
           </div>
         )}

@@ -63,11 +63,12 @@ export default function AlumniRegistrationForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const handleInputChange = (name: string, value: string | number | boolean | string[]) => {
+  const handleInputChange = (
+    name: string,
+    value: string | number | boolean | string[]
+  ) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
-    if (errors[name]) {
-      setErrors((prev) => ({ ...prev, [name]: '' }))
-    }
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
   }
 
   const validateForm = (): boolean => {
@@ -75,17 +76,19 @@ export default function AlumniRegistrationForm({
 
     if (!formData.name.trim()) newErrors.name = 'Nama lengkap wajib diisi'
     if (!formData.email.trim()) newErrors.email = 'Email wajib diisi'
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)){
       newErrors.email = 'Format email tidak valid'
     }
     if (!formData.phone.trim()) newErrors.phone = 'Nomor HP wajib diisi'
     if (!formData.city.trim()) newErrors.city = 'Kota wajib diisi'
-    if (!formData.currentEmployer.trim()) newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
-    if (!formData.position.trim()) newErrors.position = 'Posisi/jabatan wajib diisi'
-    if (formData.workField.length === 0) newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
-    if (formData.batch < 1987 || formData.batch > new Date().getFullYear()) {
+    if (!formData.currentEmployer.trim())
+      newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
+    if (!formData.position.trim())
+      newErrors.position = 'Posisi/jabatan wajib diisi'
+    if (formData.workField.length === 0)
+      newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
+    if (formData.batch < 1987 || formData.batch > new Date().getFullYear())
       newErrors.batch = 'Tahun masuk tidak valid'
-    }
 
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
@@ -93,25 +96,32 @@ export default function AlumniRegistrationForm({
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (validateForm()) {
-      onSubmit(formData)
-    }
+    if (validateForm()) onSubmit(formData)
   }
 
   const generateBatchOptions = () => {
     const currentYear = new Date().getFullYear()
-    const options = []
-    for (let year = currentYear; year >= 1987; year--) {
-      options.push({ value: year.toString(), label: `Angkatan ${year}` })
-    }
-    return options
+    return Array.from({ length: currentYear - 1986 }, (_, i) => {
+      const year = currentYear - i
+      return { value: year.toString(), label: `Angkatan ${year}` }
+    })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-8">
+    <form
+      onSubmit={handleSubmit}
+      className="space-y-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-sm sm:text-base md:text-lg text-gray-200"
+    >
+      {/* ========== BAGIAN 1 ========== */}
       <FormSection
-        title="Bagian 1 - Identitas Diri"
-        description="Informasi dasar tentang identitas Anda"
+        title={
+          <span className="text-xl md:text-2xl font-semibold text-white">
+            Bagian 1 - Identitas Diri
+          </span>
+        }
+        description={
+          <p className="text-gray-400">Informasi dasar tentang identitas Anda</p>
+        }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="md:col-span-2">
@@ -146,9 +156,16 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
+      {/* ========== BAGIAN 2 ========== */}
       <FormSection
-        title="Bagian 2 - Kontak & Domisili"
-        description="Informasi kontak dan tempat tinggal saat ini"
+        title={
+          <span className="text-xl md:text-2xl font-semibold text-white">
+            Bagian 2 - Kontak & Domisili
+          </span>
+        }
+        description={
+          <p className="text-gray-400">Informasi kontak dan tempat tinggal saat ini</p>
+        }
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormInput
@@ -185,7 +202,7 @@ export default function AlumniRegistrationForm({
           <FormInput
             label="Negara"
             name="country"
-            value={formData.country || ''}
+            value={formData.country}
             onChange={handleInputChange}
             placeholder="Indonesia"
           />
@@ -202,9 +219,16 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
+      {/* ========== BAGIAN 3 ========== */}
       <FormSection
-        title="Bagian 3 - Pekerjaan"
-        description="Informasi pekerjaan dan karir saat ini"
+        title={
+          <span className="text-xl md:text-2xl font-semibold text-white">
+            Bagian 3 - Pekerjaan
+          </span>
+        }
+        description={
+          <p className="text-gray-400">Informasi pekerjaan dan karir saat ini</p>
+        }
       >
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -242,9 +266,18 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
+      {/* ========== BAGIAN 4 ========== */}
       <FormSection
-        title="Bagian 4 - Jejaring Alumni"
-        description="Ketersediaan untuk aktivitas jejaring alumni"
+        title={
+          <span className="text-xl md:text-2xl font-semibold text-white">
+            Bagian 4 - Jejaring Alumni
+          </span>
+        }
+        description={
+          <p className="text-gray-400">
+            Ketersediaan untuk aktivitas jejaring alumni
+          </p>
+        }
       >
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -274,7 +307,7 @@ export default function AlumniRegistrationForm({
           </div>
 
           <FormTextarea
-            label="Contact person lain di angkatanmu yang bisa dihubungi (Opsional)"
+            label="Contact person lain di angkatanmu (Opsional)"
             name="otherContacts"
             value={formData.otherContacts || ''}
             onChange={handleInputChange}
@@ -284,9 +317,16 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
+      {/* ========== BAGIAN 5 ========== */}
       <FormSection
-        title="Bagian 5 - Kontribusi untuk Mahasiswa Ilkomp"
-        description="Ketersediaan membantu mahasiswa junior"
+        title={
+          <span className="text-xl md:text-2xl font-semibold text-white">
+            Bagian 5 - Kontribusi untuk Mahasiswa Ilkomp
+          </span>
+        }
+        description={
+          <p className="text-gray-400">Ketersediaan membantu mahasiswa junior</p>
+        }
       >
         <div className="space-y-6">
           <FormCheckboxGroup
@@ -309,9 +349,18 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
+      {/* ========== BAGIAN 6 ========== */}
       <FormSection
-        title="Bagian 6 - Lain-lain"
-        description="Saran dan masukan untuk kegiatan alumni"
+        title={
+          <span className="text-xl md:text-2xl font-semibold text-white">
+            Bagian 6 - Lain-lain
+          </span>
+        }
+        description={
+          <p className="text-gray-400">
+            Saran dan masukan untuk kegiatan alumni
+          </p>
+        }
       >
         <FormTextarea
           label="Saran/harapan untuk kegiatan alumni ke depan (Opsional)"
@@ -323,39 +372,44 @@ export default function AlumniRegistrationForm({
         />
       </FormSection>
 
-      <div className="bg-blue-50 rounded-lg p-6">
-        <div className="flex items-start space-x-3">
+      {/* ========== VISIBILITY OPTION ========== */}
+      <div className="bg-[#0f1729] border border-gray-700 rounded-lg p-5 sm:p-6">
+        <div className="flex flex-col sm:flex-row items-start sm:space-x-3 space-y-3 sm:space-y-0">
           <input
             type="checkbox"
             id="isPublic"
             checked={formData.isPublic}
             onChange={(e) => handleInputChange('isPublic', e.target.checked)}
-            className="mt-1 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+            className="mt-1 h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-500 rounded bg-gray-800"
           />
           <div>
-            <label htmlFor="isPublic" className="text-sm font-medium text-gray-900">
+            <label
+              htmlFor="isPublic"
+              className="text-base font-medium text-white"
+            >
               Tampilkan profil saya di website alumni
             </label>
-            <div className="text-sm text-black mt-1">
-              Dengan mencentang ini, profil Anda akan ditampilkan di direktori alumni dan dapat
-              dilihat oleh alumni lain serta mahasiswa.
-            </div>
+            <p className="text-gray-400 mt-1 leading-relaxed">
+              Dengan mencentang ini, profil Anda akan ditampilkan di direktori
+              alumni dan dapat dilihat oleh alumni lain serta mahasiswa.
+            </p>
           </div>
         </div>
       </div>
 
-      <div className="flex justify-center pt-6">
+      {/* ========== SUBMIT BUTTON ========== */}
+      <div className="flex justify-center pt-8">
         <button
           type="submit"
           disabled={isSubmitting}
-          className={`px-8 py-3 rounded-lg font-semibold text-white transition-colors ${
+          className={`w-full sm:w-auto px-8 py-3 rounded-lg font-semibold transition-all shadow-md ${
             isSubmitting
-              ? 'bg-gray-200 cursor-not-allowed'
-              : 'bg-gray-500 hover:bg-gray-600 focus:ring-4 cursor-pointer focus:ring-blue-500 focus:ring-opacity-50'
-          }`}
+              ? 'bg-gray-600 cursor-not-allowed'
+              : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-800/50 active:scale-[0.98]'
+          } text-white focus:ring-4 focus:ring-blue-500 focus:ring-opacity-40`}
         >
           {isSubmitting ? (
-            <div className="flex items-center">
+            <div className="flex items-center justify-center">
               <svg
                 className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                 fill="none"
