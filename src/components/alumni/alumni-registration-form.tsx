@@ -63,10 +63,7 @@ export default function AlumniRegistrationForm({
 
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  const handleInputChange = (
-    name: string,
-    value: string | number | boolean | string[]
-  ) => {
+  const handleInputChange = (name: string, value: string | number | boolean | string[]) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
   }
@@ -76,17 +73,14 @@ export default function AlumniRegistrationForm({
 
     if (!formData.name.trim()) newErrors.name = 'Nama lengkap wajib diisi'
     if (!formData.email.trim()) newErrors.email = 'Email wajib diisi'
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)){
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
       newErrors.email = 'Format email tidak valid'
     }
     if (!formData.phone.trim()) newErrors.phone = 'Nomor HP wajib diisi'
     if (!formData.city.trim()) newErrors.city = 'Kota wajib diisi'
-    if (!formData.currentEmployer.trim())
-      newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
-    if (!formData.position.trim())
-      newErrors.position = 'Posisi/jabatan wajib diisi'
-    if (formData.workField.length === 0)
-      newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
+    if (!formData.currentEmployer.trim()) newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
+    if (!formData.position.trim()) newErrors.position = 'Posisi/jabatan wajib diisi'
+    if (formData.workField.length === 0) newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
     if (formData.batch < 1987 || formData.batch > new Date().getFullYear())
       newErrors.batch = 'Tahun masuk tidak valid'
 
@@ -119,9 +113,7 @@ export default function AlumniRegistrationForm({
             Bagian 1 - Identitas Diri
           </span>
         }
-        description={
-          <p className="text-gray-400">Informasi dasar tentang identitas Anda</p>
-        }
+        description={<p className="text-gray-400">Informasi dasar tentang identitas Anda</p>}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
           <div className="md:col-span-2">
@@ -149,7 +141,7 @@ export default function AlumniRegistrationForm({
           <FormInput
             label="NIM (Opsional)"
             name="nim"
-            value={formData.nim || ''}
+            value={formData.nim ?? ''}
             onChange={handleInputChange}
             placeholder="Contoh: 12/12345/PA/12345"
           />
@@ -163,9 +155,7 @@ export default function AlumniRegistrationForm({
             Bagian 2 - Kontak & Domisili
           </span>
         }
-        description={
-          <p className="text-gray-400">Informasi kontak dan tempat tinggal saat ini</p>
-        }
+        description={<p className="text-gray-400">Informasi kontak dan tempat tinggal saat ini</p>}
       >
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <FormInput
@@ -202,7 +192,7 @@ export default function AlumniRegistrationForm({
           <FormInput
             label="Negara"
             name="country"
-            value={formData.country}
+            value={formData.country ?? 'Indonesia'}
             onChange={handleInputChange}
             placeholder="Indonesia"
           />
@@ -211,7 +201,7 @@ export default function AlumniRegistrationForm({
             <FormInput
               label="Akun LinkedIn (Opsional)"
               name="linkedin"
-              value={formData.linkedin || ''}
+              value={formData.linkedin ?? ''}
               onChange={handleInputChange}
               placeholder="https://linkedin.com/in/username"
             />
@@ -222,13 +212,9 @@ export default function AlumniRegistrationForm({
       {/* ========== BAGIAN 3 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">
-            Bagian 3 - Pekerjaan
-          </span>
+          <span className="text-xl md:text-2xl font-semibold text-white">Bagian 3 - Pekerjaan</span>
         }
-        description={
-          <p className="text-gray-400">Informasi pekerjaan dan karir saat ini</p>
-        }
+        description={<p className="text-gray-400">Informasi pekerjaan dan karir saat ini</p>}
       >
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -273,11 +259,7 @@ export default function AlumniRegistrationForm({
             Bagian 4 - Jejaring Alumni
           </span>
         }
-        description={
-          <p className="text-gray-400">
-            Ketersediaan untuk aktivitas jejaring alumni
-          </p>
-        }
+        description={<p className="text-gray-400">Ketersediaan untuk aktivitas jejaring alumni</p>}
       >
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
@@ -310,7 +292,7 @@ export default function AlumniRegistrationForm({
           <FormTextarea
             label="Contact person lain di angkatanmu (Opsional)"
             name="otherContacts"
-            value={formData.otherContacts || ''}
+            value={formData.otherContacts ?? ''}
             onChange={handleInputChange}
             placeholder="Nama: No. telp., angkatan&#10;Contoh: John Doe: 081234567890, 2020"
             rows={3}
@@ -325,15 +307,13 @@ export default function AlumniRegistrationForm({
             Bagian 5 - Kontribusi untuk Mahasiswa Ilkomp
           </span>
         }
-        description={
-          <p className="text-gray-400">Ketersediaan membantu mahasiswa junior</p>
-        }
+        description={<p className="text-gray-400">Ketersediaan membantu mahasiswa junior</p>}
       >
         <div className="space-y-6">
           <FormCheckboxGroup
             label="Apakah bersedia dihubungi oleh mahasiswa untuk:"
             name="willingToHelp"
-            value={formData.willingToHelp || []}
+            value={formData.willingToHelp ?? []}
             onChange={handleInputChange}
             options={HELP_OPTIONS}
             description="Pilih jenis bantuan yang bersedia Anda berikan"
@@ -342,7 +322,7 @@ export default function AlumniRegistrationForm({
           <FormTextarea
             label="Topik yang bisa dibantu/dibagikan (Opsional)"
             name="helpTopics"
-            value={formData.helpTopics || ''}
+            value={formData.helpTopics ?? ''}
             onChange={handleInputChange}
             placeholder="Jelaskan topik atau bidang yang bisa Anda bantu..."
             rows={4}
@@ -353,20 +333,14 @@ export default function AlumniRegistrationForm({
       {/* ========== BAGIAN 6 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">
-            Bagian 6 - Lain-lain
-          </span>
+          <span className="text-xl md:text-2xl font-semibold text-white">Bagian 6 - Lain-lain</span>
         }
-        description={
-          <p className="text-gray-400">
-            Saran dan masukan untuk kegiatan alumni
-          </p>
-        }
+        description={<p className="text-gray-400">Saran dan masukan untuk kegiatan alumni</p>}
       >
         <FormTextarea
           label="Saran/harapan untuk kegiatan alumni ke depan (Opsional)"
           name="suggestions"
-          value={formData.suggestions || ''}
+          value={formData.suggestions ?? ''}
           onChange={handleInputChange}
           placeholder="Tuliskan saran atau harapan Anda untuk kegiatan alumni..."
           rows={4}
@@ -384,15 +358,12 @@ export default function AlumniRegistrationForm({
             className="mt-1 h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-500 rounded bg-gray-800"
           />
           <div>
-            <label
-              htmlFor="isPublic"
-              className="text-base font-medium text-white"
-            >
+            <label htmlFor="isPublic" className="text-base font-medium text-white">
               Tampilkan profil saya di website alumni
             </label>
             <p className="text-gray-400 mt-1 leading-relaxed">
-              Dengan mencentang ini, profil Anda akan ditampilkan di direktori
-              alumni dan dapat dilihat oleh alumni lain serta mahasiswa.
+              Dengan mencentang ini, profil Anda akan ditampilkan di direktori alumni dan dapat
+              dilihat oleh alumni lain serta mahasiswa.
             </p>
           </div>
         </div>

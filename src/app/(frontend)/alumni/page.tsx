@@ -5,7 +5,6 @@ import Image from 'next/image'
 import AlumniFilter from '@/components/alumni/alumni-filter'
 import { Alumni, AlumniDisplay, convertToDisplay } from '@/types/alumni'
 
-// Filter options interface
 interface FilterOptions {
   batch: string
   city: string
@@ -15,7 +14,6 @@ interface FilterOptions {
   search: string
 }
 
-// Work field labels mapping
 const workFieldLabels: Record<string, string> = {
   akademisi: 'Akademisi',
   pemerintah: 'Pemerintah',
