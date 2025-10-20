@@ -265,7 +265,6 @@ export default function AlumniRegistrationForm({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
             <FormSelect
               label="Apakah bersedia menjadi contact person angkatan"
-              className="text-3xs"
               name="contactPersonReady"
               value={formData.contactPersonReady}
               onChange={handleInputChange}
