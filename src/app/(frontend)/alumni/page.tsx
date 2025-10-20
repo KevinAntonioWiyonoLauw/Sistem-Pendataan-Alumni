@@ -162,9 +162,7 @@ export default function AlumniDirectoryPage() {
           <h1 className="text-4xl font-bold text-gray-900 text-center mb-2">
             Direktori Alumni Ilkom
           </h1>
-          <p className=" text-center">
-            Temukan dan hubungi alumni Ilmu Komputer
-          </p>
+          <p className=" text-center">Temukan dan hubungi alumni Ilmu Komputer</p>
         </div>
 
         {/* Filter Component */}
@@ -179,7 +177,7 @@ export default function AlumniDirectoryPage() {
 
         {/* Error Display */}
         {error && (
-          <div className="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+          <div className="max-w-7xl mx-auto mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-2xl">
             {error}
           </div>
         )}

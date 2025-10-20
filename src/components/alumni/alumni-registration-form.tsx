@@ -110,7 +110,7 @@ export default function AlumniRegistrationForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-sm sm:text-base md:text-lg text-gray-200"
+      className="space-y-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-[13px] sm:text-[15px] md:text-[17px] text-gray-200"
     >
       {/* ========== BAGIAN 1 ========== */}
       <FormSection
@@ -123,7 +123,7 @@ export default function AlumniRegistrationForm({
           <p className="text-gray-400">Informasi dasar tentang identitas Anda</p>
         }
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
           <div className="md:col-span-2">
             <FormInput
               label="Nama Lengkap"
@@ -280,9 +280,10 @@ export default function AlumniRegistrationForm({
         }
       >
         <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
             <FormSelect
-              label="Apakah bersedia menjadi contact person angkatan?"
+              label="Apakah bersedia menjadi contact person angkatan"
+              className="text-3xs"
               name="contactPersonReady"
               value={formData.contactPersonReady}
               onChange={handleInputChange}
