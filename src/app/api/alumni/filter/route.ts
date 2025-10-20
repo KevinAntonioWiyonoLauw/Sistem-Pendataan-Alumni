@@ -3,10 +3,37 @@ import { getPayloadHMR } from '@payloadcms/next/utilities'
 import configPromise from '@payload-config'
 import type { Where } from 'payload'
 
+async function isAuthenticatedAdmin(request: NextRequest): Promise<boolean> {
+  try {
+    const payload = await getPayloadHMR({ config: configPromise })
+    const payloadToken = request.cookies.get('payload-token')?.value
+
+    if (!payloadToken) {
+      return false
+    }
+
+    const user = await payload.auth({ headers: request.headers })
+
+    if (!user?.user) {
+      return false
+    }
+
+    const isAdmin = user.user.roles?.includes('admin') || user.user.collection === 'users'
+    return isAdmin
+  } catch (error) {
+    console.error('Auth check error:', error)
+    return false
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const payload = await getPayloadHMR({ config: configPromise })
     const { searchParams } = new URL(request.url)
+
+    const isAdmin = await isAuthenticatedAdmin(request)
+
+    console.log(`🔐 User authenticated as admin: ${isAdmin}`)
 
     const batch = searchParams.get('batch')
     const city = searchParams.get('city')
@@ -14,71 +41,90 @@ export async function GET(request: NextRequest) {
     const currentEmployer = searchParams.get('currentEmployer')
     const position = searchParams.get('position')
     const search = searchParams.get('search')
-    const limit = Math.min(parseInt(searchParams.get('limit') || '100'), 500)
-    const page = Math.max(parseInt(searchParams.get('page') || '1'), 1)
-    const sort = searchParams.get('sort') || '-batch'
+    const sortParam = searchParams.get('sort') || '-batch'
+    const page = parseInt(searchParams.get('page') || '1')
+    const limit = parseInt(searchParams.get('limit') || '100')
 
-    // ✅ Build where clause untuk struktur baru
-    const where = {
-      'metadata.isPublic': {
-        equals: true,
-      },
-    } as Where
+    const sort = sortParam.startsWith('-') ? sortParam : `-${sortParam}`
 
-    if (batch && !isNaN(parseInt(batch))) {
-      where.batch = {
-        equals: parseInt(batch),
-      }
+    const where: Where = {
+      and: [
+        {
+          'metadata.isPublic': {
+            equals: true,
+          },
+        },
+      ],
     }
 
-    if (city && city.trim()) {
-      where['kontak.location.city'] = {
-        contains: city.trim(),
-      }
+    if (batch) {
+      where.and!.push({
+        batch: {
+          equals: parseInt(batch),
+        },
+      })
     }
 
-    if (workField && workField.trim()) {
-      where['pekerjaan.workField'] = {
-        contains: workField.trim(),
-      }
+    if (city && isAdmin) {
+      where.and!.push({
+        'kontak.location.city': {
+          equals: city,
+        },
+      })
     }
 
-    if (currentEmployer && currentEmployer.trim()) {
-      where['pekerjaan.currentEmployer'] = {
-        contains: currentEmployer.trim(),
-      }
+    if (workField && isAdmin) {
+      where.and!.push({
+        'pekerjaan.workField': {
+          contains: workField,
+        },
+      })
     }
 
-    if (position && position.trim()) {
-      where['pekerjaan.position'] = {
-        contains: position.trim(),
-      }
+    if (currentEmployer && isAdmin) {
+      where.and!.push({
+        'pekerjaan.currentEmployer': {
+          contains: currentEmployer,
+        },
+      })
     }
 
-    if (search && search.trim()) {
+    if (position && isAdmin) {
+      where.and!.push({
+        'pekerjaan.position': {
+          contains: position,
+        },
+      })
+    }
+
+    if (search && isAdmin) {
       const searchTerm = search.trim()
-      where.or = [
-        {
-          name: {
-            contains: searchTerm,
-          },
-        },
-        {
-          'kontak.email': {
-            contains: searchTerm,
-          },
-        },
-        {
-          'pekerjaan.currentEmployer': {
-            contains: searchTerm,
-          },
-        },
-        {
-          'pekerjaan.position': {
-            contains: searchTerm,
-          },
-        },
-      ]
+      if (searchTerm) {
+        where.and!.push({
+          or: [
+            {
+              name: {
+                contains: searchTerm,
+              },
+            },
+            {
+              'kontak.email': {
+                contains: searchTerm,
+              },
+            },
+            {
+              'pekerjaan.currentEmployer': {
+                contains: searchTerm,
+              },
+            },
+            {
+              'pekerjaan.position': {
+                contains: searchTerm,
+              },
+            },
+          ],
+        })
+      }
     }
 
     console.log('🔍 Filter where clause:', JSON.stringify(where, null, 2))
@@ -89,20 +135,45 @@ export async function GET(request: NextRequest) {
       sort,
       limit,
       page,
-      depth: 2, // ✅ Increase depth untuk nested data
+      depth: 2,
     })
 
     console.log(`📊 Found ${result.docs.length} alumni out of ${result.totalDocs}`)
 
+    // ✅ FIX: Return different data structure based on authentication
+    const filteredDocs = result.docs.map((alumni) => {
+      if (!isAdmin) {
+        // ❌ Non-authenticated: Return limited data
+        return {
+          id: alumni.id,
+          name: alumni.name,
+          batch: alumni.batch,
+          metadata: {
+            isPublic: alumni.metadata?.isPublic ?? true,
+            photo: alumni.metadata?.photo || null,
+          },
+        }
+      }
+      // ✅ Authenticated: Return FULL alumni object
+      return alumni
+    })
+
+    console.log('📤 Returning data:', {
+      isAdmin,
+      docsCount: filteredDocs.length,
+      firstDocKeys: filteredDocs[0] ? Object.keys(filteredDocs[0]) : [],
+    })
+
     return NextResponse.json({
       success: true,
-      alumni: result.docs,
+      alumni: filteredDocs,
       total: result.totalDocs,
       totalPages: result.totalPages,
       page: result.page,
       limit: result.limit,
       hasNextPage: result.hasNextPage,
       hasPrevPage: result.hasPrevPage,
+      isAuthenticated: isAdmin,
     })
   } catch (error: unknown) {
     console.error('❌ Error filtering alumni:', error)

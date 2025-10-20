@@ -19,7 +19,7 @@ export default buildConfig({
       baseDir: path.resolve(dirname),
     },
     components: {
-      beforeNavLinks: ['./components/AdminCustomNav'],
+      // beforeNavLinks: ['./components/AdminCustomNav'],
       logout: {
         Button: './components/AdminLogoutButton',
       },

@@ -19,6 +19,11 @@ export default function Home() {
               Lihat Daftar Alumni
             </button>
           </Link>
+          <Link href="/alumni/survey-alumni-ilmu-komputer">
+            <button className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-3 rounded-lg inline-block cursor-pointer">
+              Isi Survey Alumni
+            </button>
+          </Link>
           <Link href="/admin">
             <button className="bg-gray-300 hover:bg-gray-400 text-black px-6 py-3 rounded-lg inline-block cursor-pointer">
               Admin Panel

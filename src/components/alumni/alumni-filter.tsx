@@ -108,9 +108,9 @@ export default function AlumniFilter({
           <h3 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
             Filter Alumni
           </h3>
-          <Link href="/alumni/registrasi">
+          <Link href="/alumni/survey-alumni-ilmu-komputer">
             <button className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow-md hover:shadow-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200">
-              + Daftar Alumni
+              + Isi Survey Alumni
             </button>
           </Link>
         </div>
@@ -160,7 +160,12 @@ export default function AlumniFilter({
               options: workFields.map((f) => workFieldLabels[f] || f),
               values: workFields,
             },
-            { label: 'Perusahaan/Instansi', key: 'currentEmployer', options: employers, values: employers },
+            {
+              label: 'Perusahaan/Instansi',
+              key: 'currentEmployer',
+              options: employers,
+              values: employers,
+            },
             { label: 'Posisi/Jabatan', key: 'position', options: positions, values: positions },
           ].map(({ label, key, options, values }) => (
             <div key={key}>

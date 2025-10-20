@@ -157,7 +157,13 @@ export interface Alumnus {
       city: string;
       country: string;
     };
+    /**
+     * Data ini hanya visible untuk admin
+     */
     phone: string;
+    /**
+     * Data ini hanya visible untuk admin
+     */
     email: string;
     linkedin?: string | null;
   };
@@ -194,8 +200,17 @@ export interface Alumnus {
   };
   metadata?: {
     photo?: (number | null) | Media;
+    /**
+     * Jika dicentang, profil akan muncul di direktori publik
+     */
     isPublic?: boolean | null;
+    /**
+     * Otomatis terisi berdasarkan cara input data
+     */
     source?: ('manual' | 'google-forms') | null;
+    /**
+     * ID unik dari response Google Forms
+     */
     googleFormsId?: string | null;
   };
   updatedAt: string;

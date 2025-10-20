@@ -12,12 +12,24 @@ export const Alumni: CollectionConfig = {
       'updatedAt',
     ],
   },
+
+  // ✅ Access Control - Membatasi akses berdasarkan autentikasi
   access: {
+    // Read: Semua orang bisa baca, tapi data akan difilter di hook
     read: () => true,
-    create: () => true,
-    update: () => true,
-    delete: () => true,
+
+    // Create/Update/Delete: Hanya admin yang bisa
+    create: ({ req: { user } }) => {
+      return !!user
+    },
+    update: ({ req: { user } }) => {
+      return !!user
+    },
+    delete: ({ req: { user } }) => {
+      return !!user
+    },
   },
+
   fields: [
     {
       name: 'name',
@@ -44,6 +56,7 @@ export const Alumni: CollectionConfig = {
       },
     },
 
+    // ========== BAGIAN 2: KONTAK ==========
     {
       name: 'kontak',
       type: 'group',
@@ -74,11 +87,8 @@ export const Alumni: CollectionConfig = {
           type: 'text',
           label: 'Nomor HP/WA Aktif',
           required: true,
-          access: {
-            read: ({ req: { user } }) => {
-              if (user && user.roles?.includes('admin')) return true
-              return false
-            },
+          admin: {
+            description: 'Data ini hanya visible untuk admin',
           },
         },
         {
@@ -88,11 +98,8 @@ export const Alumni: CollectionConfig = {
           required: true,
           unique: true,
           index: true,
-          access: {
-            read: ({ req: { user } }) => {
-              if (user && user.roles?.includes('admin')) return true
-              return false
-            },
+          admin: {
+            description: 'Data ini hanya visible untuk admin',
           },
         },
         {
@@ -106,6 +113,7 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
+    // ========== BAGIAN 3: PEKERJAAN ==========
     {
       name: 'pekerjaan',
       type: 'group',
@@ -148,6 +156,7 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
+    // ========== BAGIAN 4: JEJARING ==========
     {
       name: 'jejaring',
       type: 'group',
@@ -185,6 +194,7 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
+    // ========== BAGIAN 5: KONTRIBUSI ==========
     {
       name: 'kontribusi',
       type: 'group',
@@ -214,6 +224,7 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
+    // ========== BAGIAN 6: LAIN-LAIN ==========
     {
       name: 'lainnya',
       type: 'group',
@@ -231,6 +242,7 @@ export const Alumni: CollectionConfig = {
       ],
     },
 
+    // ========== METADATA ==========
     {
       name: 'metadata',
       type: 'group',
@@ -251,6 +263,9 @@ export const Alumni: CollectionConfig = {
           label: 'Tampilkan di Website',
           defaultValue: true,
           index: true,
+          admin: {
+            description: 'Jika dicentang, profil akan muncul di direktori publik',
+          },
         },
         {
           name: 'source',
@@ -261,6 +276,10 @@ export const Alumni: CollectionConfig = {
             { label: 'Google Forms', value: 'google-forms' },
           ],
           defaultValue: 'manual',
+          admin: {
+            readOnly: true,
+            description: 'Otomatis terisi berdasarkan cara input data',
+          },
         },
         {
           name: 'googleFormsId',
@@ -269,6 +288,7 @@ export const Alumni: CollectionConfig = {
           admin: {
             readOnly: true,
             condition: (data) => data.metadata?.source === 'google-forms',
+            description: 'ID unik dari response Google Forms',
           },
         },
       ],

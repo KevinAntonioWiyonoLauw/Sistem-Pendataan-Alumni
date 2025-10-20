@@ -1,47 +1,71 @@
 export interface Alumni {
-  id: string
+  id: string | number
   name: string
   batch: number
   nim?: string
-  kontak: {
-    location: {
-      city: string
-      country: string
+  kontak?: {
+    location?: {
+      city?: string
+      country?: string
     }
-    phone: string
-    email: string
+    phone?: string
+    email?: string
     linkedin?: string
   }
-  pekerjaan: {
-    currentEmployer: string
-    workField: string[]
-    position: string
+  pekerjaan?: {
+    currentEmployer?: string
+    workField?: string[]
+    position?: string
   }
-  jejaring: {
-    contactPersonReady: 'ya' | 'tidak'
-    alumniOfficerReady: 'ya' | 'tidak'
+  jejaring?: {
+    contactPersonReady?: 'ya' | 'tidak'
+    alumniOfficerReady?: 'ya' | 'tidak'
     otherContacts?: string
   }
-  kontribusi: {
+  kontribusi?: {
     willingToHelp?: string[]
     helpTopics?: string
   }
-  lainnya: {
+  lainnya?: {
     suggestions?: string
   }
-  metadata: {
+  metadata?: {
     photo?: {
-      id: string
-      url: string
-      alt: string
-      filename: string
+      url?: string
+      alt?: string
     }
-    isPublic: boolean
-    source: 'manual' | 'google-forms'
+    isPublic?: boolean
+    source?: 'manual' | 'google-forms'
     googleFormsId?: string
   }
-  updatedAt: string
-  createdAt: string
+  updatedAt?: string
+  createdAt?: string
+}
+
+export interface AlumniDisplay {
+  id: string | number
+  name: string
+  batch: number
+  nim?: string
+  email: string
+  phone: string
+  city: string
+  country: string
+  linkedin?: string
+  currentEmployer: string
+  workField?: string[]
+  position: string
+  contactPersonReady: boolean
+  alumniOfficerReady: boolean
+  otherContacts?: string
+  willingToHelp?: string[]
+  helpTopics?: string
+  suggestions?: string
+  photo?: {
+    url: string
+    alt: string
+  }
+  isPublic: boolean
 }
 
 export interface RegisterAlumniData {
@@ -63,29 +87,6 @@ export interface RegisterAlumniData {
   helpTopics?: string
   suggestions?: string
   isPublic?: boolean
-}
-
-export interface AlumniDisplay {
-  id: string
-  name: string
-  batch: number
-  nim?: string
-  email: string
-  phone: string
-  city: string
-  country: string
-  linkedin?: string
-  currentEmployer: string
-  workField: string[]
-  position: string
-  photo?: {
-    url: string
-    alt: string
-  }
-  contactPersonReady: boolean
-  alumniOfficerReady: boolean
-  willingToHelp?: string[]
-  helpTopics?: string
 }
 
 export interface AlumniFilter {
@@ -169,25 +170,33 @@ export const HELP_OPTIONS = [
   { value: 'networking', label: 'Networking Professional' },
 ] as const
 
-export const convertToDisplay = (alumni: Alumni): AlumniDisplay => {
+export function convertToDisplay(alumni: Alumni): AlumniDisplay {
   return {
     id: alumni.id,
-    name: alumni.name,
-    batch: alumni.batch,
+    name: alumni.name || 'Unknown',
+    batch: alumni.batch || 0,
     nim: alumni.nim,
-    email: alumni.kontak.email,
-    phone: alumni.kontak.phone,
-    city: alumni.kontak.location.city,
-    country: alumni.kontak.location.country,
-    linkedin: alumni.kontak.linkedin,
-    currentEmployer: alumni.pekerjaan.currentEmployer,
-    workField: alumni.pekerjaan.workField,
-    position: alumni.pekerjaan.position,
-    photo: alumni.metadata.photo,
-    contactPersonReady: alumni.jejaring.contactPersonReady === 'ya',
-    alumniOfficerReady: alumni.jejaring.alumniOfficerReady === 'ya',
-    willingToHelp: alumni.kontribusi.willingToHelp,
-    helpTopics: alumni.kontribusi.helpTopics,
+    email: alumni.kontak?.email || '',
+    phone: alumni.kontak?.phone || '',
+    city: alumni.kontak?.location?.city || 'Unknown',
+    country: alumni.kontak?.location?.country || 'Unknown',
+    linkedin: alumni.kontak?.linkedin,
+    currentEmployer: alumni.pekerjaan?.currentEmployer || 'Unknown',
+    workField: alumni.pekerjaan?.workField || [],
+    position: alumni.pekerjaan?.position || 'Unknown',
+    contactPersonReady: alumni.jejaring?.contactPersonReady === 'ya',
+    alumniOfficerReady: alumni.jejaring?.alumniOfficerReady === 'ya',
+    otherContacts: alumni.jejaring?.otherContacts,
+    willingToHelp: alumni.kontribusi?.willingToHelp || [],
+    helpTopics: alumni.kontribusi?.helpTopics,
+    suggestions: alumni.lainnya?.suggestions,
+    photo: alumni.metadata?.photo?.url
+      ? {
+          url: alumni.metadata.photo.url,
+          alt: alumni.metadata.photo.alt || alumni.name,
+        }
+      : undefined,
+    isPublic: alumni.metadata?.isPublic ?? true,
   }
 }
 

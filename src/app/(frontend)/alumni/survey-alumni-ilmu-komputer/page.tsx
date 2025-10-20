@@ -64,11 +64,12 @@ export default function AlumniRegistrationPage() {
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]">
-            Registrasi Alumni Ilmu Komputer
+            Survey Alumni Ilmu Komputer
           </h1>
           <p className="text-base md:text-lg text-gray-300 max-w-2xl mx-auto leading-relaxed">
-            Bergabunglah dengan <span className="text-cyan-400 font-medium">database alumni</span> Ilmu Komputer UGM
-            untuk tetap terhubung, berbagi pengalaman, dan mendukung generasi berikutnya.
+            Bergabunglah dengan <span className="text-cyan-400 font-medium">database alumni</span>{' '}
+            Ilmu Komputer UGM untuk tetap terhubung, berbagi pengalaman, dan mendukung generasi
+            berikutnya.
           </p>
         </div>
 
@@ -89,7 +90,12 @@ export default function AlumniRegistrationPage() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M5 13l4 4L19 7"
+                  />
                 </svg>
               ) : (
                 <svg
@@ -98,12 +104,19 @@ export default function AlumniRegistrationPage() {
                   stroke="currentColor"
                   viewBox="0 0 24 24"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
                 </svg>
               )}
               <p className="font-semibold text-lg text-white">{submitStatus.message}</p>
               {submitStatus.type === 'success' && (
-                <p className="text-sm mt-2 text-gray-400">Anda akan diarahkan dalam beberapa saat...</p>
+                <p className="text-sm mt-2 text-gray-400">
+                  Anda akan diarahkan dalam beberapa saat...
+                </p>
               )}
               <button
                 onClick={() => setSubmitStatus({ type: null, message: '' })}
@@ -122,7 +135,7 @@ export default function AlumniRegistrationPage() {
         {/* Form Container */}
         <div className="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:border-gray-500 hover:shadow-[0_0_20px_rgba(100,100,255,0.2)]">
           <h2 className="text-2xl md:text-3xl font-semibold mb-8 !text-white border-b border-gray-700 pb-3">
-            Formulir Pendaftaran Alumni
+            Formulir Survey Alumni
           </h2>
 
           <AlumniRegistrationForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />
