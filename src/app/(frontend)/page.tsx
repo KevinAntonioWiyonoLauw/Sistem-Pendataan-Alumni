@@ -3,7 +3,7 @@ import { InteractiveGridPattern } from '@/components/ui/interactive-grid-pattern
 
 export default function Home() {
   return (
-    <div className="relative container w-screen  h-screen flex justify-center">
+    <div className="relative  w-screen  h-screen flex justify-center items-center">
       <InteractiveGridPattern className='flex w-screen h-screen justify-center'/>
       <div className='flex flex-col justify-center gap-4 items-center'>
         <h1 className="z-2 text-4xl font-bold text-center ">Pendataan Alumni Computer Science UGM</h1>
