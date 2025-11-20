@@ -1,39 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
-import configPromise from '@payload-config'
-import type { Where } from 'payload'
+import axios from 'axios'
 
-async function isAuthenticatedAdmin(request: NextRequest): Promise<boolean> {
-  try {
-    const payload = await getPayloadHMR({ config: configPromise })
-    const payloadToken = request.cookies.get('payload-token')?.value
-
-    if (!payloadToken) {
-      return false
-    }
-
-    const user = await payload.auth({ headers: request.headers })
-
-    if (!user?.user) {
-      return false
-    }
-
-    const isAdmin = user.user.roles?.includes('admin') || user.user.collection === 'users'
-    return isAdmin
-  } catch (error) {
-    console.error('Auth check error:', error)
-    return false
-  }
-}
+const STRAPI_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
 
 export async function GET(request: NextRequest) {
   try {
-    const payload = await getPayloadHMR({ config: configPromise })
     const { searchParams } = new URL(request.url)
-
-    const isAdmin = await isAuthenticatedAdmin(request)
-
-    console.log(`🔐 User authenticated as admin: ${isAdmin}`)
 
     const batch = searchParams.get('batch')
     const city = searchParams.get('city')
@@ -41,149 +13,84 @@ export async function GET(request: NextRequest) {
     const currentEmployer = searchParams.get('currentEmployer')
     const position = searchParams.get('position')
     const search = searchParams.get('search')
-    const sortParam = searchParams.get('sort') || '-batch'
+    const sortParam = searchParams.get('sort') || 'batch:desc'
     const page = parseInt(searchParams.get('page') || '1')
     const limit = parseInt(searchParams.get('limit') || '100')
 
-    const sort = sortParam.startsWith('-') ? sortParam : `-${sortParam}`
-
-    const where: Where = {
-      and: [
-        {
-          'metadata.isPublic': {
-            equals: true,
-          },
-        },
-      ],
+    // Build Strapi filters
+    const filters: any = {
+      isPublic: {
+        $eq: true,
+      },
     }
 
     if (batch) {
-      where.and!.push({
-        batch: {
-          equals: parseInt(batch),
-        },
-      })
-    }
-
-    if (city && isAdmin) {
-      where.and!.push({
-        'kontak.location.city': {
-          equals: city,
-        },
-      })
-    }
-
-    if (workField && isAdmin) {
-      where.and!.push({
-        'pekerjaan.workField': {
-          contains: workField,
-        },
-      })
-    }
-
-    if (currentEmployer && isAdmin) {
-      where.and!.push({
-        'pekerjaan.currentEmployer': {
-          contains: currentEmployer,
-        },
-      })
-    }
-
-    if (position && isAdmin) {
-      where.and!.push({
-        'pekerjaan.position': {
-          contains: position,
-        },
-      })
-    }
-
-    if (search && isAdmin) {
-      const searchTerm = search.trim()
-      if (searchTerm) {
-        where.and!.push({
-          or: [
-            {
-              name: {
-                contains: searchTerm,
-              },
-            },
-            {
-              'kontak.email': {
-                contains: searchTerm,
-              },
-            },
-            {
-              'pekerjaan.currentEmployer': {
-                contains: searchTerm,
-              },
-            },
-            {
-              'pekerjaan.position': {
-                contains: searchTerm,
-              },
-            },
-          ],
-        })
+      filters.batch = {
+        $eq: parseInt(batch),
       }
     }
 
-    console.log('🔍 Filter where clause:', JSON.stringify(where, null, 2))
-
-    const result = await payload.find({
-      collection: 'alumni',
-      where,
-      sort,
-      limit,
-      page,
-      depth: 2,
-    })
-
-    console.log(`📊 Found ${result.docs.length} alumni out of ${result.totalDocs}`)
-
-    // ✅ FIX: Return different data structure based on authentication
-    const filteredDocs = result.docs.map((alumni) => {
-      if (!isAdmin) {
-        // ❌ Non-authenticated: Return limited data
-        return {
-          id: alumni.id,
-          name: alumni.name,
-          batch: alumni.batch,
-          metadata: {
-            isPublic: alumni.metadata?.isPublic ?? true,
-            photo: alumni.metadata?.photo || null,
-          },
-        }
+    if (city) {
+      filters.city = {
+        $containsi: city,
       }
-      // ✅ Authenticated: Return FULL alumni object
-      return alumni
+    }
+
+    if (workField) {
+      filters.workField = {
+        $containsi: workField,
+      }
+    }
+
+    if (currentEmployer) {
+      filters.currentEmployer = {
+        $containsi: currentEmployer,
+      }
+    }
+
+    if (position) {
+      filters.position = {
+        $containsi: position,
+      }
+    }
+
+    if (search) {
+      filters.$or = [
+        { name: { $containsi: search } },
+        { currentEmployer: { $containsi: search } },
+        { position: { $containsi: search } },
+      ]
+    }
+
+    // Query Strapi
+    const response = await axios.get(`${STRAPI_URL}/api/alumni`, {
+      params: {
+        filters,
+        sort: sortParam,
+        pagination: {
+          page,
+          pageSize: limit,
+        },
+        populate: '*',
+      },
     })
 
-    console.log('📤 Returning data:', {
-      isAdmin,
-      docsCount: filteredDocs.length,
-      firstDocKeys: filteredDocs[0] ? Object.keys(filteredDocs[0]) : [],
-    })
+    const alumni = response.data.data.map((item: any) => ({
+      id: item.id,
+      ...item.attributes,
+    }))
 
     return NextResponse.json({
-      success: true,
-      alumni: filteredDocs,
-      total: result.totalDocs,
-      totalPages: result.totalPages,
-      page: result.page,
-      limit: result.limit,
-      hasNextPage: result.hasNextPage,
-      hasPrevPage: result.hasPrevPage,
-      isAuthenticated: isAdmin,
+      alumni,
+      totalDocs: response.data.meta.pagination.total,
+      page: response.data.meta.pagination.page,
+      totalPages: response.data.meta.pagination.pageCount,
+      isAuthenticated: false,
     })
-  } catch (error: unknown) {
-    console.error('❌ Error filtering alumni:', error)
-
-    const errorMessage = error instanceof Error ? error.message : 'Terjadi kesalahan server'
+  } catch (error: any) {
+    console.error('Error fetching alumni:', error.message)
     return NextResponse.json(
-      {
-        error: errorMessage,
-        success: false,
-      },
+      { error: 'Failed to fetch alumni data', details: error.message },
       { status: 500 },
     )
   }

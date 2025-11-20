@@ -1,30 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server'
 
+// Middleware tidak diperlukan untuk Strapi karena admin panel di-handle oleh Strapi sendiri
+// Redirect ke Strapi admin jika user mengakses /admin
 export function middleware(request: NextRequest) {
-  // Check if user is accessing protected routes
   const { pathname } = request.nextUrl
 
-  // Protected routes that require authentication
-  const protectedRoutes = ['/alumni/dashboard', '/alumni/profile', '/alumni/settings']
-
-  // Check if current path is protected
-  const isProtectedRoute = protectedRoutes.some((route) => pathname.startsWith(route))
-
-  if (isProtectedRoute) {
-    // Check for authentication token in cookies
-    const token = request.cookies.get('payload-token')
-
-    if (!token) {
-      // Redirect to login if no token
-      const loginUrl = new URL('/login', request.url)
-      loginUrl.searchParams.set('redirect', pathname)
-      return NextResponse.redirect(loginUrl)
-    }
+  // Redirect /admin ke Strapi admin panel
+  if (pathname === '/admin' || pathname.startsWith('/admin/')) {
+    const strapiAdminUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
+    return NextResponse.redirect(`${strapiAdminUrl}/admin`)
   }
 
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/alumni/dashboard/:path*', '/alumni/profile/:path*', '/alumni/settings/:path*'],
+  matcher: ['/admin/:path*'],
 }

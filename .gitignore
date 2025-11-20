@@ -42,6 +42,7 @@ next-env.d.ts
 .env.prod
 
 /media
+/strapi-app
 
 # Playwright
 node_modules/

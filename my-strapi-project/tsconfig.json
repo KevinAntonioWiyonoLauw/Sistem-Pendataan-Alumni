@@ -1,0 +1,18 @@
+{
+  "extends": "@strapi/typescript-utils/tsconfigs/server",
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": ".",
+    "allowJs": true,
+    "checkJs": false,
+    "module": "commonjs",
+    "target": "ES2021",
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "skipLibCheck": true,
+    "strict": false
+  },
+  "include": ["./", "./src/**/*", "./config/**/*", "./database/**/*"],
+  "exclude": ["node_modules/", "build/", "dist/", ".cache/", ".tmp/", ".strapi/"]
+}

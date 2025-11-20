@@ -1,0 +1,32 @@
+# Next.js
+.next/
+out/
+
+# Strapi
+strapi-app/node_modules
+strapi-app/.cache
+strapi-app/build
+strapi-app/.tmp
+
+# Dependencies
+node_modules/
+.pnp
+.pnp.js
+
+# Testing
+coverage/
+
+# Misc
+.DS_Store
+*.pem
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Local env files
+.env*.local
+.env
+
+# Git
+.git
+.gitignore

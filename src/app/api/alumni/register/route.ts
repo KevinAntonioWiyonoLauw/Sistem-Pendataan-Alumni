@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getPayloadHMR } from '@payloadcms/next/utilities'
-import configPromise from '@payload-config'
+import axios from 'axios'
 
-type SourceType = 'manual' | 'google-forms'
+const STRAPI_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
 
 const VALID_WORK_FIELDS = [
   'akademisi',
@@ -62,9 +61,9 @@ function validateHelpTypes(types: string[]): Array<(typeof VALID_HELP_TYPES)[num
 
 export async function POST(request: NextRequest) {
   try {
-    const payload = await getPayloadHMR({ config: configPromise })
     const data: RegisterAlumniData = await request.json()
 
+    // Validations
     if (!data.name || !data.email || !data.batch) {
       return NextResponse.json({ error: 'Nama, email, dan angkatan wajib diisi' }, { status: 400 })
     }
@@ -87,27 +86,35 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const existingAlumni = await payload.find({
-      collection: 'alumni',
-      where: {
-        'kontak.email': {
-          equals: data.email.toLowerCase(),
+    // Check if email already exists
+    try {
+      const existingResponse = await axios.get(`${STRAPI_URL}/api/alumni`, {
+        params: {
+          filters: {
+            email: {
+              $eq: data.email.toLowerCase(),
+            },
+          },
         },
-      },
-    })
+      })
 
-    if (existingAlumni.docs.length > 0) {
-      return NextResponse.json(
-        { error: 'Email sudah terdaftar dalam database alumni' },
-        { status: 400 },
-      )
+      if (existingResponse.data.data.length > 0) {
+        return NextResponse.json(
+          { error: 'Email sudah terdaftar dalam database alumni' },
+          { status: 400 },
+        )
+      }
+    } catch (error) {
+      console.error('Error checking existing email:', error)
     }
 
+    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(data.email)) {
       return NextResponse.json({ error: 'Format email tidak valid' }, { status: 400 })
     }
 
+    // Phone validation
     if (data.phone) {
       const phoneRegex = /^[\+]?[\d\s\-\(\)]{7,20}$/
       const cleanPhone = data.phone.replace(/\s|-|\(|\)/g, '')
@@ -122,10 +129,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // LinkedIn validation
     if (data.linkedin && !data.linkedin.includes('linkedin.com')) {
       return NextResponse.json({ error: 'URL LinkedIn tidak valid' }, { status: 400 })
     }
 
+    // Batch validation
     const currentYear = new Date().getFullYear()
     if (data.batch < 1987 || data.batch > currentYear) {
       return NextResponse.json(
@@ -141,58 +150,39 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bidang pekerjaan tidak valid' }, { status: 400 })
     }
 
-    const alumni = await payload.create({
-      collection: 'alumni',
+    // Create alumni in Strapi
+    const alumniData = {
       data: {
         name: data.name,
         batch: data.batch,
-        nim: data.nim || undefined,
-
-        kontak: {
-          location: {
-            city: data.city,
-            country: data.country || 'Indonesia',
-          },
-          phone: data.phone || '',
-          email: data.email.toLowerCase(),
-          linkedin: data.linkedin || undefined,
-        },
-
-        pekerjaan: {
-          currentEmployer: data.currentEmployer,
-          workField: validatedWorkFields,
-          position: data.position,
-        },
-
-        jejaring: {
-          contactPersonReady: data.contactPersonReady,
-          alumniOfficerReady: data.alumniOfficerReady,
-          otherContacts: data.otherContacts || undefined,
-        },
-
-        kontribusi: {
-          willingToHelp: validatedHelpTypes,
-          helpTopics: data.helpTopics || undefined,
-        },
-
-        lainnya: {
-          suggestions: data.suggestions || undefined,
-        },
-
-        metadata: {
-          isPublic: data.isPublic !== false,
-          source: 'manual' as SourceType,
-        },
+        nim: data.nim || null,
+        email: data.email.toLowerCase(),
+        phone: data.phone || null,
+        city: data.city,
+        country: data.country || 'Indonesia',
+        linkedin: data.linkedin || null,
+        currentEmployer: data.currentEmployer,
+        workField: validatedWorkFields,
+        position: data.position,
+        contactPersonReady: data.contactPersonReady,
+        alumniOfficerReady: data.alumniOfficerReady,
+        otherContacts: data.otherContacts || null,
+        willingToHelp: validatedHelpTypes,
+        helpTopics: data.helpTopics || null,
+        suggestions: data.suggestions || null,
+        isPublic: data.isPublic !== false,
       },
-    })
+    }
 
-    console.log('Alumni created successfully:', alumni.id)
+    const response = await axios.post(`${STRAPI_URL}/api/alumni`, alumniData)
+
+    console.log('Alumni created successfully:', response.data.data.id)
 
     return NextResponse.json(
       {
         message: 'Data alumni berhasil didaftarkan!',
         alumni: {
-          id: alumni.id,
+          id: response.data.data.id,
           name: data.name,
           email: data.email.toLowerCase(),
           batch: data.batch,
@@ -201,24 +191,14 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 },
     )
-  } catch (error: unknown) {
-    console.error('Error creating alumni:', error)
+  } catch (error: any) {
+    console.error('Error creating alumni:', error.message)
 
-    if (error instanceof Error) {
-      if (error.message.includes('duplicate key')) {
-        return NextResponse.json({ error: 'Email sudah terdaftar' }, { status: 400 })
-      }
-
-      if (error.message.includes('validation')) {
-        return NextResponse.json(
-          { error: 'Data tidak valid, periksa kembali input Anda' },
-          { status: 400 },
-        )
-      }
-
-      if (error.message.includes('phone')) {
-        return NextResponse.json({ error: 'Format nomor HP tidak valid' }, { status: 400 })
-      }
+    if (error.response?.data?.error) {
+      return NextResponse.json(
+        { error: error.response.data.error.message || 'Terjadi kesalahan server' },
+        { status: error.response.status || 500 },
+      )
     }
 
     return NextResponse.json(
