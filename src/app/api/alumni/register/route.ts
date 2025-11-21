@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import axios from 'axios'
+import type { RegisterAlumniData } from '@/types/alumni'
 
 const STRAPI_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
+const STRAPI_API_KEY = process.env.STRAPI_API_KEY
 
 const VALID_WORK_FIELDS = [
   'akademisi',
@@ -25,27 +26,6 @@ const VALID_HELP_TYPES = [
   'beasiswa-studi',
   'networking',
 ] as const
-
-interface RegisterAlumniData {
-  name: string
-  batch: number
-  nim?: string
-  email: string
-  phone?: string
-  city: string
-  country?: string
-  linkedin?: string
-  currentEmployer: string
-  workField: string[]
-  position: string
-  contactPersonReady: 'ya' | 'tidak'
-  alumniOfficerReady: 'ya' | 'tidak'
-  otherContacts?: string
-  willingToHelp?: string[]
-  helpTopics?: string
-  suggestions?: string
-  isPublic?: boolean
-}
 
 function validateWorkFields(fields: string[]): Array<(typeof VALID_WORK_FIELDS)[number]> {
   return fields.filter((field) =>
@@ -88,21 +68,24 @@ export async function POST(request: NextRequest) {
 
     // Check if email already exists
     try {
-      const existingResponse = await axios.get(`${STRAPI_URL}/api/alumni`, {
-        params: {
-          filters: {
-            email: {
-              $eq: data.email.toLowerCase(),
-            },
-          },
+      const checkParams = new URLSearchParams({
+        'filters[kontak][email][$eq]': data.email.toLowerCase(),
+      })
+
+      const existingResponse = await fetch(`${STRAPI_URL}/api/alumnis?${checkParams}`, {
+        headers: {
+          Authorization: `Bearer ${STRAPI_API_KEY}`,
         },
       })
 
-      if (existingResponse.data.data.length > 0) {
-        return NextResponse.json(
-          { error: 'Email sudah terdaftar dalam database alumni' },
-          { status: 400 },
-        )
+      if (existingResponse.ok) {
+        const existingData = await existingResponse.json()
+        if (existingData.data.length > 0) {
+          return NextResponse.json(
+            { error: 'Email sudah terdaftar dalam database alumni' },
+            { status: 400 },
+          )
+        }
       }
     } catch (error) {
       console.error('Error checking existing email:', error)
@@ -150,43 +133,70 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Bidang pekerjaan tidak valid' }, { status: 400 })
     }
 
-    // Create alumni in Strapi
+    // Build Strapi-compatible data structure
     const alumniData = {
       data: {
         name: data.name,
         batch: data.batch,
         nim: data.nim || null,
-        email: data.email.toLowerCase(),
-        phone: data.phone || null,
-        city: data.city,
-        country: data.country || 'Indonesia',
-        linkedin: data.linkedin || null,
-        currentEmployer: data.currentEmployer,
-        workField: validatedWorkFields,
-        position: data.position,
-        contactPersonReady: data.contactPersonReady,
-        alumniOfficerReady: data.alumniOfficerReady,
-        otherContacts: data.otherContacts || null,
-        willingToHelp: validatedHelpTypes,
-        helpTopics: data.helpTopics || null,
-        suggestions: data.suggestions || null,
-        isPublic: data.isPublic !== false,
+        kontak: {
+          email: data.email?.toLowerCase() || null,
+          phone: data.phone || null,
+          linkedin: data.linkedin || null,
+          location: {
+            city: data.city || null,
+            country: data.country || 'Indonesia',
+          },
+        },
+        pekerjaan: {
+          currentEmployer: data.currentEmployer || null,
+          workField: validatedWorkFields[0] || null,
+          position: data.position || null,
+        },
+        jejaring: {
+          contactPersonReady: data.contactPersonReady === 'ya' ? 'ya' : 'tidak',
+          alumniOfficerReady: data.alumniOfficerReady === 'ya' ? 'ya' : 'tidak',
+          otherContacts: data.otherContacts || null,
+        },
+        kontribusi: {
+          willingToHelp: validatedHelpTypes[0] || null,
+          helpTopics: data.helpTopics || null,
+        },
+        lainnya: {
+          suggestions: data.suggestions || null,
+        },
       },
     }
 
-    const response = await axios.post(`${STRAPI_URL}/api/alumni`, alumniData)
+    console.log('📤 Sending to Strapi:', JSON.stringify(alumniData, null, 2))
 
-    console.log('Alumni created successfully:', response.data.data.id)
+    const response = await fetch(`${STRAPI_URL}/api/alumnis`, {
+      method: 'POST',
+      headers: {
+        Authorization: `Bearer ${STRAPI_API_KEY}`,
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(alumniData),
+    })
+
+    if (!response.ok) {
+      const errorText = await response.text()
+      console.error('❌ Strapi error:', errorText)
+      throw new Error(`Strapi API error: ${response.status}`)
+    }
+
+    const result = await response.json()
+
+    console.log('✅ Strapi response:', JSON.stringify(result, null, 2))
 
     return NextResponse.json(
       {
         message: 'Data alumni berhasil didaftarkan!',
         alumni: {
-          id: response.data.data.id,
+          id: result.data.documentId || result.data.id,
           name: data.name,
-          email: data.email.toLowerCase(),
+          email: data.email?.toLowerCase(),
           batch: data.batch,
-          phoneProvided: Boolean(data.phone),
         },
       },
       { status: 201 },

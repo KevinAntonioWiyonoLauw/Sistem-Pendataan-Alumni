@@ -1,0 +1,23 @@
+{
+  "collectionName": "components_sections_kontribusis",
+  "info": {
+    "displayName": "Kontribusi",
+    "description": "Component for contribution interests, used in StrapiAlumni."
+  },
+  "options": {},
+  "attributes": {
+    "willingToHelp": {
+      "type": "enumeration",
+      "enum": [
+        "mentoring-career",
+        "magang-riset",
+        "beasiswa-studi",
+        "networking"
+      ]
+    },
+    "helpTopics": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

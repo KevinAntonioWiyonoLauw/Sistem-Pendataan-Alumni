@@ -1,0 +1,17 @@
+{
+  "collectionName": "components_sections_locations",
+  "info": {
+    "displayName": "Location",
+    "description": "Component for location details, used in KontakComponent."
+  },
+  "options": {},
+  "attributes": {
+    "city": {
+      "type": "string"
+    },
+    "country": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

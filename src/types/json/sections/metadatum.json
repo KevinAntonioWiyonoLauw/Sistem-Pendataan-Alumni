@@ -1,0 +1,33 @@
+{
+  "collectionName": "components_sections_metadata",
+  "info": {
+    "displayName": "Metadatum",
+    "description": "Component for metadata related to alumni entry, used in StrapiAlumni."
+  },
+  "options": {},
+  "attributes": {
+    "photo": {
+      "type": "media",
+      "multiple": false,
+      "allowedTypes": [
+        "images"
+      ]
+    },
+    "isPublic": {
+      "type": "boolean",
+      "default": true
+    },
+    "source": {
+      "type": "enumeration",
+      "default": "manual",
+      "enum": [
+        "manual",
+        "google-forms"
+      ]
+    },
+    "googleFormsId": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

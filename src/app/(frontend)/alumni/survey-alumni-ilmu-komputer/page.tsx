@@ -55,14 +55,23 @@ export default function AlumniRegistrationPage() {
   }
 
   return (
-    <div className="min-h-screen py-20 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-800 text-white relative overflow-hidden">
+    <div
+      className="min-h-screen py-20 bg-gradient-to-b from-gray-950 via-gray-900 to-gray-800 text-white relative overflow-hidden"
+      suppressHydrationWarning
+    >
       {/* Subtle glowing background accent */}
-      <div className="absolute -top-40 -left-40 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"></div>
-      <div className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"></div>
+      <div
+        className="absolute -top-40 -left-40 w-96 h-96 bg-cyan-500/20 rounded-full blur-3xl"
+        suppressHydrationWarning
+      ></div>
+      <div
+        className="absolute bottom-0 right-0 w-96 h-96 bg-purple-500/20 rounded-full blur-3xl"
+        suppressHydrationWarning
+      ></div>
 
-      <div className="max-w-4xl mx-auto px-4 relative z-10">
+      <div className="max-w-4xl mx-auto px-4 relative z-10" suppressHydrationWarning>
         {/* Header */}
-        <div className="text-center mb-12">
+        <div className="text-center mb-12" suppressHydrationWarning>
           <h1 className="text-4xl md:text-5xl font-extrabold mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400 drop-shadow-[0_0_10px_rgba(56,189,248,0.3)]">
             Survey Alumni Ilmu Komputer
           </h1>
@@ -75,13 +84,17 @@ export default function AlumniRegistrationPage() {
 
         {/* Popup Notification */}
         {submitStatus.type && (
-          <div className="fixed inset-0 flex items-center justify-center bg-black/60 z-50 backdrop-blur-sm">
+          <div
+            className="fixed inset-0 flex items-center justify-center bg-black/60 z-50 backdrop-blur-sm"
+            suppressHydrationWarning
+          >
             <div
               className={`rounded-xl p-6 max-w-sm w-full shadow-2xl text-center border ${
                 submitStatus.type === 'success'
                   ? 'bg-gray-900 border-green-400'
                   : 'bg-gray-900 border-red-400'
               }`}
+              suppressHydrationWarning
             >
               {submitStatus.type === 'success' ? (
                 <svg
@@ -133,7 +146,10 @@ export default function AlumniRegistrationPage() {
         )}
 
         {/* Form Container */}
-        <div className="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:border-gray-500 hover:shadow-[0_0_20px_rgba(100,100,255,0.2)]">
+        <div
+          className="bg-gray-900/80 backdrop-blur-md border border-gray-700 rounded-2xl shadow-2xl p-8 transition-all duration-300 hover:border-gray-500 hover:shadow-[0_0_20px_rgba(100,100,255,0.2)]"
+          suppressHydrationWarning
+        >
           <h2 className="text-2xl md:text-3xl font-semibold mb-8 !text-white border-b border-gray-700 pb-3">
             Formulir Survey Alumni
           </h2>
@@ -142,7 +158,7 @@ export default function AlumniRegistrationPage() {
         </div>
 
         {/* Footer Note */}
-        <div className="mt-10 text-center text-sm text-gray-400">
+        <div className="mt-10 text-center text-sm text-gray-400" suppressHydrationWarning>
           <p>
             Data yang Anda berikan akan dijaga kerahasiaannya dan hanya digunakan untuk keperluan{' '}
             <span className="text-cyan-400">jejaring alumni</span>.

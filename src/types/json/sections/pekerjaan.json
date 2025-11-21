@@ -1,0 +1,35 @@
+{
+  "collectionName": "components_sections_pekerjaans",
+  "info": {
+    "displayName": "Pekerjaan",
+    "description": "Component for work details, used in StrapiAlumni."
+  },
+  "options": {},
+  "attributes": {
+    "currentEmployer": {
+      "type": "string"
+    },
+    "workField": {
+      "type": "enumeration",
+      "enum": [
+        "akademisi",
+        "pemerintah",
+        "lembaga-pemerintah",
+        "wirausaha",
+        "swasta",
+        "konsultan",
+        "teknologi",
+        "keuangan",
+        "media",
+        "kesehatan",
+        "pendidikan",
+        "nonprofit",
+        "lainnya"
+      ]
+    },
+    "position": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

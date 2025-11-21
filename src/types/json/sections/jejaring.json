@@ -1,0 +1,30 @@
+{
+  "collectionName": "components_sections_jejarings",
+  "info": {
+    "displayName": "Jejaring",
+    "description": "Component for networking preferences, used in StrapiAlumni."
+  },
+  "options": {},
+  "attributes": {
+    "contactPersonReady": {
+      "type": "enumeration",
+      "default": "tidak",
+      "enum": [
+        "ya",
+        "tidak"
+      ]
+    },
+    "alumniOfficerReady": {
+      "type": "enumeration",
+      "default": "tidak",
+      "enum": [
+        "ya",
+        "tidak"
+      ]
+    },
+    "otherContacts": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

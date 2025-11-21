@@ -1,0 +1,14 @@
+{
+  "collectionName": "components_sections_lainnyas",
+  "info": {
+    "displayName": "Lainnya",
+    "description": "Component for additional suggestions, used in StrapiAlumni."
+  },
+  "options": {},
+  "attributes": {
+    "suggestions": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

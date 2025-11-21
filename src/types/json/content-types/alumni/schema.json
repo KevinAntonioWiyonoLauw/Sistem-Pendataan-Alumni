@@ -1,0 +1,52 @@
+{
+  "kind": "collectionType",
+  "collectionName": "alumnis",
+  "info": {
+    "singularName": "alumni",
+    "pluralName": "alumnis",
+    "displayName": "Alumnis"
+  },
+  "options": {
+    "draftAndPublish": false
+  },
+  "pluginOptions": {},
+  "attributes": {
+    "name": {
+      "type": "string",
+      "required": true
+    },
+    "batch": {
+      "type": "integer",
+      "required": true,
+      "default": 2024
+    },
+    "nim": {
+      "type": "string"
+    },
+    "kontak": {
+      "type": "component",
+      "component": "sections.kontak",
+      "repeatable": false
+    },
+    "pekerjaan": {
+      "type": "component",
+      "component": "sections.pekerjaan",
+      "repeatable": false
+    },
+    "jejaring": {
+      "type": "component",
+      "component": "sections.jejaring",
+      "repeatable": false
+    },
+    "kontribusi": {
+      "type": "component",
+      "component": "sections.kontribusi",
+      "repeatable": false
+    },
+    "lainnya": {
+      "type": "component",
+      "component": "sections.lainnya",
+      "repeatable": false
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "collectionName": "components_sections_kontaks",
+  "info": {
+    "displayName": "Kontak",
+    "description": "Component for contact information, used in StrapiAlumni."
+  },
+  "options": {},
+  "attributes": {
+    "location": {
+      "type": "component",
+      "component": "sections.location",
+      "repeatable": false
+    },
+    "phone": {
+      "type": "string"
+    },
+    "email": {
+      "type": "email"
+    },
+    "linkedin": {
+      "type": "string"
+    }
+  },
+  "config": {}
+}

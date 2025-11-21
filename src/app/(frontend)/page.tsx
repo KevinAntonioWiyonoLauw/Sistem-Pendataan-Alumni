@@ -24,11 +24,6 @@ export default function Home() {
               Isi Survey Alumni
             </button>
           </Link>
-          <Link href="/admin">
-            <button className="bg-gray-300 hover:bg-gray-400 text-black px-6 py-3 rounded-lg inline-block cursor-pointer">
-              Admin Panel
-            </button>
-          </Link>
         </div>
       </div>
     </div>
