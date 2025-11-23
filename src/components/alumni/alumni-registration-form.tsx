@@ -6,6 +6,7 @@ import FormInput from './form-input'
 import FormSelect from './form-select'
 import FormTextarea from './form-text-area'
 import FormCheckboxGroup from './form-checkbox-group'
+import FormCountrySelect from './form-country-select'
 import type { RegisterAlumniData } from '@/types/alumni'
 
 interface AlumniRegistrationFormProps {
@@ -104,19 +105,20 @@ export default function AlumniRegistrationForm({
   return (
     <form
       onSubmit={handleSubmit}
-      className="space-y-10 w-full max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-[13px] sm:text-[15px] md:text-[17px] text-gray-200"
+      className="space-y-10 w-full max-w-4xl mx-auto mt-6 px-4 sm:px-6 lg:px-8 text-[13px] sm:text-[15px] md:text-[17px] text-gray-200"
     >
       {/* ========== BAGIAN 1 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">
+          <span className="text-xl md:text-2xl font-semibold text-ugm-main">
             Bagian 1 - Identitas Diri
           </span>
         }
-        description={<p className="text-gray-400">Informasi dasar tentang identitas Anda</p>}
+        description={<p className="text-ugm-muted">Informasi dasar tentang identitas Anda</p>}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 px-4">
-          <div className="md:col-span-2">
+        <div className="space-y-6 text-ugm-main">
+          {/* Nama Lengkap - Full Width */}
+          <div className="w-full">
             <FormInput
               label="Nama Lengkap"
               name="name"
@@ -128,76 +130,86 @@ export default function AlumniRegistrationForm({
             />
           </div>
 
-          <FormSelect
-            label="Tahun Masuk (Angkatan)"
-            name="batch"
-            value={formData.batch.toString()}
-            onChange={(name, value) => handleInputChange(name, parseInt(value))}
-            options={generateBatchOptions()}
-            error={errors.batch}
-            required
-          />
+          {/* Grid untuk Tahun Masuk dan NIM - Equal Width */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormSelect
+              label="Tahun Masuk (Angkatan)"
+              name="batch"
+              value={formData.batch.toString()}
+              onChange={(name, value) => handleInputChange(name, parseInt(value))}
+              options={generateBatchOptions()}
+              error={errors.batch}
+              required
+            />
 
-          <FormInput
-            label="NIM (Opsional)"
-            name="nim"
-            value={formData.nim ?? ''}
-            onChange={handleInputChange}
-            placeholder="Contoh: 12/12345/PA/12345"
-          />
+            <FormInput
+              label="NIM (Opsional)"
+              name="nim"
+              value={formData.nim ?? ''}
+              onChange={handleInputChange}
+              placeholder="Contoh: 12/12345/PA/12345"
+            />
+          </div>
         </div>
       </FormSection>
 
       {/* ========== BAGIAN 2 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">
+          <span className="text-xl md:text-2xl font-semibold text-ugm-main">
             Bagian 2 - Kontak & Domisili
           </span>
         }
-        description={<p className="text-gray-400">Informasi kontak dan tempat tinggal saat ini</p>}
+        description={<p className="text-ugm-muted">Informasi kontak dan tempat tinggal saat ini</p>}
       >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <FormInput
-            label="Email Aktif"
-            name="email"
-            type="email"
-            value={formData.email}
-            onChange={handleInputChange}
-            error={errors.email}
-            required
-            placeholder="nama@email.com"
-          />
+        <div className="space-y-6 text-ugm-main">
+          {/* Grid untuk Email dan Phone */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormInput
+              label="Email Aktif"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleInputChange}
+              error={errors.email}
+              required
+              placeholder="nama@email.com"
+            />
 
-          <FormInput
-            label="Nomor HP/WA Aktif"
-            name="phone"
-            value={formData.phone}
-            onChange={handleInputChange}
-            error={errors.phone}
-            required
-            placeholder="081234567890"
-          />
+            <FormInput
+              label="Nomor HP/WA Aktif"
+              name="phone"
+              value={formData.phone}
+              onChange={handleInputChange}
+              error={errors.phone}
+              required
+              placeholder="081234567890"
+            />
+          </div>
 
-          <FormInput
-            label="Kota Domisili"
-            name="city"
-            value={formData.city}
-            onChange={handleInputChange}
-            error={errors.city}
-            required
-            placeholder="Jakarta"
-          />
+          {/* Grid untuk City dan Country */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <FormInput
+              label="Kota Domisili"
+              name="city"
+              value={formData.city}
+              onChange={handleInputChange}
+              error={errors.city}
+              required
+              placeholder="Jakarta"
+            />
 
-          <FormInput
-            label="Negara"
-            name="country"
-            value={formData.country ?? 'Indonesia'}
-            onChange={handleInputChange}
-            placeholder="Indonesia"
-          />
+            <FormCountrySelect
+              label="Negara"
+              name="country"
+              value={formData.country ?? 'Indonesia'}
+              onChange={handleInputChange}
+              placeholder="Pilih negara"
+            />
+          </div>
 
-          <div className="md:col-span-2">
+          {/* LinkedIn - Full Width */}
+          <div className="w-full">
             <FormInput
               label="Akun LinkedIn (Opsional)"
               name="linkedin"
@@ -212,12 +224,14 @@ export default function AlumniRegistrationForm({
       {/* ========== BAGIAN 3 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">Bagian 3 - Pekerjaan</span>
+          <span className="text-xl md:text-2xl font-semibold text-ugm-main">
+            Bagian 3 - Pekerjaan
+          </span>
         }
-        description={<p className="text-gray-400">Informasi pekerjaan dan karir saat ini</p>}
+        description={<p className="text-ugm-muted">Informasi pekerjaan dan karir saat ini</p>}
       >
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-6 text-ugm-main">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
             <FormInput
               label="Nama Perusahaan/Instansi"
               name="currentEmployer"
@@ -255,13 +269,13 @@ export default function AlumniRegistrationForm({
       {/* ========== BAGIAN 4 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">
+          <span className="text-xl md:text-2xl font-semibold text-ugm-main">
             Bagian 4 - Jejaring Alumni
           </span>
         }
-        description={<p className="text-gray-400">Ketersediaan untuk aktivitas jejaring alumni</p>}
+        description={<p className="text-ugm-muted">Ketersediaan untuk aktivitas jejaring alumni</p>}
       >
-        <div className="space-y-6">
+        <div className="space-y-6 text-ugm-main">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6 ">
             <FormSelect
               label="Apakah bersedia menjadi contact person angkatan"
@@ -302,13 +316,13 @@ export default function AlumniRegistrationForm({
       {/* ========== BAGIAN 5 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">
-            Bagian 5 - Kontribusi untuk Mahasiswa Ilkomp
+          <span className="text-xl md:text-2xl font-semibold text-ugm-main">
+            Bagian 5 - Kontribusi untuk Mahasiswa Ilmu Komputer
           </span>
         }
-        description={<p className="text-gray-400">Ketersediaan membantu mahasiswa junior</p>}
+        description={<p className="text-ugm-muted">Ketersediaan membantu mahasiswa junior</p>}
       >
-        <div className="space-y-6">
+        <div className="space-y-6 text-ugm-main">
           <FormCheckboxGroup
             label="Apakah bersedia dihubungi oleh mahasiswa untuk:"
             name="willingToHelp"
@@ -332,22 +346,26 @@ export default function AlumniRegistrationForm({
       {/* ========== BAGIAN 6 ========== */}
       <FormSection
         title={
-          <span className="text-xl md:text-2xl font-semibold text-white">Bagian 6 - Lain-lain</span>
+          <span className="text-xl md:text-2xl font-semibold text-ugm-main">
+            Bagian 6 - Lain-lain
+          </span>
         }
-        description={<p className="text-gray-400">Saran dan masukan untuk kegiatan alumni</p>}
+        description={<p className="text-ugm-muted">Saran dan masukan untuk kegiatan alumni</p>}
       >
-        <FormTextarea
-          label="Saran/harapan untuk kegiatan alumni ke depan (Opsional)"
-          name="suggestions"
-          value={formData.suggestions ?? ''}
-          onChange={handleInputChange}
-          placeholder="Tuliskan saran atau harapan Anda untuk kegiatan alumni..."
-          rows={4}
-        />
+        <div className="text-ugm-main">
+          <FormTextarea
+            label="Saran/harapan untuk kegiatan alumni ke depan (Opsional)"
+            name="suggestions"
+            value={formData.suggestions ?? ''}
+            onChange={handleInputChange}
+            placeholder="Tuliskan saran atau harapan Anda untuk kegiatan alumni..."
+            rows={4}
+          />
+        </div>
       </FormSection>
 
       {/* ========== VISIBILITY OPTION ========== */}
-      <div className="bg-[#0f1729] border border-gray-700 rounded-lg p-5 sm:p-6">
+      <div className="border border-gray-700 rounded-lg p-5 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:space-x-3 space-y-3 sm:space-y-0">
           <input
             type="checkbox"
@@ -357,7 +375,7 @@ export default function AlumniRegistrationForm({
             className="mt-1 h-4 w-4 text-blue-500 focus:ring-blue-500 border-gray-500 rounded bg-gray-800"
           />
           <div>
-            <label htmlFor="isPublic" className="text-base font-medium text-white">
+            <label htmlFor="isPublic" className="text-lg font-medium text-ugm-main">
               Tampilkan profil saya di website alumni
             </label>
             <p className="text-gray-400 mt-1 leading-relaxed">
@@ -376,13 +394,13 @@ export default function AlumniRegistrationForm({
           className={`w-full sm:w-auto px-8 py-3 rounded-lg font-semibold transition-all shadow-md ${
             isSubmitting
               ? 'bg-gray-600 cursor-not-allowed'
-              : 'bg-blue-600 hover:bg-blue-700 hover:shadow-blue-800/50 active:scale-[0.98]'
-          } text-white focus:ring-4 focus:ring-blue-500 focus:ring-opacity-40`}
+              : 'bg-ugm-blue-soft hover:bg-ugm-blue hover:shadow-blue-800/50 active:scale-[0.98]'
+          } text-ugm-light focus:ring-4 focus:ring-blue-500 focus:ring-opacity-40`}
         >
           {isSubmitting ? (
             <div className="flex items-center justify-center">
               <svg
-                className="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
+                className="animate-spin -ml-1 mr-3 h-5 w-5 text-ugm-main"
                 fill="none"
                 viewBox="0 0 24 24"
               >

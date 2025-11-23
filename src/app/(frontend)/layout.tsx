@@ -1,5 +1,7 @@
 import React from 'react'
-import './global.css'
+import '@/styles/global.css'
+import '@/styles/theme.css'
+import '@/styles/typography.css'
 
 export const metadata = {
   description: 'Terhubung dengan sesama alumni Computer Science Universitas Gadjah Mada',
@@ -10,7 +12,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
   const { children } = props
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body>
         <main>{children}</main>
       </body>

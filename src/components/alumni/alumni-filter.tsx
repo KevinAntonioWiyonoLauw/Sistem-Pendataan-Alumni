@@ -97,7 +97,7 @@ export default function AlumniFilter({
   const sortedBatches = [...batches].sort((a, b) => parseInt(b) - parseInt(a))
 
   return (
-    <div className="bg-gradient-to-b from-gray-950 via-gray-900 to-gray-800 text-white rounded-2xl shadow-2xl p-8 relative overflow-hidden transition-all duration-300">
+    <div className="bg-linear-to-b from-gray-950 via-gray-900 to-gray-800 text-ugm-muted rounded-2xl shadow-2xl p-8 relative overflow-hidden transition-all duration-300">
       {/* subtle glow accents */}
       <div className="absolute -top-20 -left-20 w-64 h-64 bg-blue-500/20 blur-3xl rounded-full"></div>
       <div className="absolute -bottom-32 right-0 w-72 h-72 bg-purple-500/20 blur-3xl rounded-full"></div>
@@ -105,11 +105,11 @@ export default function AlumniFilter({
       <div className="relative z-10">
         {/* Header */}
         <div className="flex flex-row justify-between items-center mb-8">
-          <h3 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400">
+          <h3 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-cyan-400 via-blue-400 to-purple-400">
             Filter Alumni
           </h3>
           <Link href="/alumni/survey-alumni-ilmu-komputer">
-            <button className="px-5 py-2.5 bg-gradient-to-r from-cyan-500 to-blue-500 text-white rounded-lg shadow-md hover:shadow-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200">
+            <button className="px-5 py-2.5 bg-linear-to-r from-cyan-500 to-blue-500 text-ugm-muted rounded-lg shadow-md hover:shadow-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200">
               + Isi Survey Alumni
             </button>
           </Link>
@@ -124,7 +124,7 @@ export default function AlumniFilter({
               placeholder="Cari berdasarkan nama, email, perusahaan, atau posisi..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-800/60 border border-gray-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 text-white placeholder-gray-400 transition-all duration-200"
+              className="w-full px-4 py-3 pl-10 rounded-lg bg-gray-800/60 border border-gray-600 focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 text-ugm-muted placeholder-gray-400 transition-all duration-200"
             />
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
@@ -173,7 +173,7 @@ export default function AlumniFilter({
               <select
                 value={filters[key as keyof FilterOptions]}
                 onChange={(e) => handleFilterChange(key as keyof FilterOptions, e.target.value)}
-                className="w-full px-3 py-2 bg-gray-800/60 border border-gray-600 rounded-lg text-white cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 transition-all duration-200"
+                className="w-full px-3 py-2 bg-gray-800/60 border border-gray-600 rounded-lg text-ugm-muted cursor-pointer focus:border-cyan-400 focus:ring-2 focus:ring-cyan-400/40 transition-all duration-200"
               >
                 <option value="">Semua {label}</option>
                 {options.map((option, i) => (

@@ -1,0 +1,285 @@
+@import "tailwindcss";
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body,
+h1,
+h2,
+h3,
+h4,
+p,
+ul {
+  margin: 0;
+  padding: 0;
+}
+
+ul {
+  list-style: none;
+}
+
+
+/* Body layout - FORCE LIGHT */
+body {
+  background-color: #f9fafb !important;
+  color: #111827 !important;
+  font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+}
+
+/* Layout konten utama */
+.main-container {
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--space-lg) var(--space-md);
+}
+
+/* Link */
+a {
+  color: var(--ugm-blue);
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+/* Card umum */
+.card {
+  background: #ffffff;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--ugm-border-subtle);
+  padding: var(--space-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+/* Button utama */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  background-color: var(--ugm-blue-soft);
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius-sm);
+  border: none;
+  font-weight: 600;
+  font-size: 0.95rem;
+  cursor: pointer;
+  transition: transform 0.12s ease, box-shadow 0.12s ease,
+    background-color 0.12s ease;
+}
+
+.btn-primary {
+  background-color: var(--ugm-blue);
+  color: #ffffff;
+}
+
+.btn-primary:hover {
+  background-color: var(--ugm-blue-soft);
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-1px);
+}
+
+.btn-outline {
+  background-color: transparent;
+  color: var(--ugm-blue);
+  border: 1px solid var(--ugm-blue);
+}
+
+.btn-outline:hover {
+  background-color: rgba(7, 61, 97, 0.04);
+}
+
+.btn-secondary {
+  background-color: var(--ugm-yellow);
+  color: var(--ugm-text-main);
+  border-color: var(--ugm-yellow);
+}
+
+.btn-secondary:hover {
+  background-color: #f1c40f;
+  transform: scale(1.05);
+}
+
+.btn-secondary:focus {
+  ring-color: var(--ugm-yellow);
+  ring-opacity: 0.5;
+}
+
+/* Badge untuk status mahasiswa/alumni */
+.badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.badge-alumni {
+  background-color: rgba(7, 61, 97, 0.08);
+  color: var(--ugm-blue);
+}
+
+.badge-active {
+  background-color: rgba(21, 128, 61, 0.1);
+  color: var(--ugm-success);
+}
+
+/* UGM Manual utilities - GUNAKAN CSS VARIABLES */
+.bg-ugm-blue { background-color: var(--ugm-blue) !important; }
+.text-ugm-blue { color: var(--ugm-blue) !important; }
+.border-ugm-blue { border-color: var(--ugm-blue) !important; }
+
+.bg-ugm-blue-soft { background-color: var(--ugm-blue-soft) !important; }
+.text-ugm-blue-soft { color: var(--ugm-blue-soft) !important; }
+.border-ugm-blue-soft { border-color: var(--ugm-blue-soft) !important; }
+
+.bg-ugm-yellow { background-color: var(--ugm-yellow) !important; }
+.text-ugm-yellow { color: var(--ugm-yellow) !important; }
+.border-ugm-yellow { border-color: var(--ugm-yellow) !important; }
+
+.bg-ugm-bg-light { background-color: var(--ugm-bg-light) !important; }
+.bg-ugm-bg-subtle { background-color: var(--ugm-bg-subtle) !important; }
+.text-ugm-light { color: var(--ugm-bg-light) !important; }
+.text-ugm-subtle { color: var(--ugm-bg-subtle) !important; }
+
+.text-ugm-main { color: var(--ugm-text-main) !important; }
+.text-ugm-muted { color: var(--ugm-text-muted) !important; }
+
+.border-ugm-border-subtle { border-color: var(--ugm-border-subtle) !important; }
+
+/* Status colors */
+.bg-ugm-success { background-color: var(--ugm-success) !important; }
+.text-ugm-success { color: var(--ugm-success) !important; }
+.border-ugm-success { border-color: var(--ugm-success) !important; }
+
+.bg-ugm-warning { background-color: var(--ugm-warning) !important; }
+.text-ugm-warning { color: var(--ugm-warning) !important; }
+.border-ugm-warning { border-color: var(--ugm-warning) !important; }
+
+.bg-ugm-danger { background-color: var(--ugm-danger) !important; }
+.text-ugm-danger { color: var(--ugm-danger) !important; }
+.border-ugm-danger { border-color: var(--ugm-danger) !important; }
+
+@theme inline {
+  --radius-sm: 0.375rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-xl: 1.5rem;
+  
+  /* UGM Brand Colors */
+  --ugm-blue: #073d61;
+  --ugm-blue-soft: #0c507d;
+  --ugm-yellow: #f4c522;
+  --ugm-black: #000000;
+  --ugm-bg-light: #f9fafb;
+  --ugm-bg-subtle: #f3f4f6;
+  --ugm-border-subtle: #e5e7eb;
+  --ugm-text-main: #111827;
+  --ugm-text-muted: #6b7280;
+  --ugm-success: #15803d;
+  --ugm-warning: #f59e0b;
+  --ugm-danger: #b91c1c;
+  
+  /* Spacing */
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  
+  /* Shadow */
+  --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+  
+  /* Tailwind colors - LIGHT THEME ONLY */
+  --color-background: 249 250 251;
+  --color-foreground: 17 24 39;
+  --color-card: 255 255 255;
+  --color-card-foreground: 17 24 39;
+  --color-popover: 255 255 255;
+  --color-popover-foreground: 17 24 39;
+  --color-primary: 7 61 97;
+  --color-primary-foreground: 255 255 255;
+  --color-secondary: 243 244 246;
+  --color-secondary-foreground: 17 24 39;
+  --color-muted: 243 244 246;
+  --color-muted-foreground: 107 114 128;
+  --color-accent: 243 244 246;
+  --color-accent-foreground: 17 24 39;
+  --color-destructive: 185 28 28;
+  --color-border: 229 231 235;
+  --color-input: 229 231 235;
+  --color-ring: 7 61 97;
+}
+
+:root {
+  --radius: 0.625rem;
+  
+  /* FORCE LIGHT THEME */
+  --background: 249 250 251;
+  --foreground: 17 24 39;
+  --card: 255 255 255;
+  --card-foreground: 17 24 39;
+  --popover: 255 255 255;
+  --popover-foreground: 17 24 39;
+  --primary: 7 61 97;
+  --primary-foreground: 255 255 255;
+  --secondary: 243 244 246;
+  --secondary-foreground: 17 24 39;
+  --muted: 243 244 246;
+  --muted-foreground: 107 114 128;
+  --accent: 243 244 246;
+  --accent-foreground: 17 24 39;
+  --destructive: 185 28 28;
+  --destructive-foreground: 255 255 255;
+  --border: 229 231 235;
+  --input: 229 231 235;
+  --ring: 7 61 97;
+  
+  /* UGM Variables */
+  --ugm-blue: #073d61;
+  --ugm-blue-soft: #0c507d;
+  --ugm-yellow: #f4c522;
+  --ugm-black: #000000;
+  --ugm-bg-light: #f9fafb;
+  --ugm-bg-subtle: #f3f4f6;
+  --ugm-border-subtle: #e5e7eb;
+  --ugm-text-main: #111827;
+  --ugm-text-muted: #6b7280;
+  --ugm-success: #15803d;
+  --ugm-warning: #f59e0b;
+  --ugm-danger: #b91c1c;
+  --space-xs: 0.25rem;
+  --space-sm: 0.5rem;
+  --space-md: 1rem;
+  --space-lg: 1.5rem;
+  --space-xl: 2rem;
+  --shadow-soft: 0 10px 25px rgba(15, 23, 42, 0.08);
+}
+
+/* DISABLE DARK THEME COMPLETELY */
+.dark {
+  --background: 249 250 251 !important;
+  --foreground: 17 24 39 !important;
+  --card: 255 255 255 !important;
+  --card-foreground: 17 24 39 !important;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-color: #f9fafb !important;
+    color: #111827 !important;
+  }
+  
+  /* Force light theme */
+  html, body {
+    color-scheme: light !important;
+  }
+}
