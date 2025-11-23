@@ -3,6 +3,69 @@ import { NextRequest, NextResponse } from 'next/server'
 const STRAPI_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
 const STRAPI_API_KEY = process.env.STRAPI_API_KEY
 
+// Define types for better type safety
+interface StrapiFilters {
+  batch?: { $eq: number }
+  name?: { $containsi: string }
+  kontak?: {
+    location?: {
+      city?: { $containsi: string }
+    }
+  }
+  pekerjaan?: {
+    workField?: { $eq: string }
+    currentEmployer?: { $containsi: string }
+    position?: { $containsi: string }
+  }
+}
+
+interface StrapiAlumniItem {
+  documentId?: string
+  id: string
+  name?: string
+  batch?: number
+  nim?: string
+  kontak?: {
+    email?: string
+    phone?: string
+    linkedin?: string
+    location?: {
+      city?: string
+      country?: string
+    }
+  }
+  pekerjaan?: {
+    currentEmployer?: string
+    workField?: string
+    position?: string
+  }
+  jejaring?: {
+    contactPersonReady?: string
+    alumniOfficerReady?: string
+    otherContacts?: string
+  }
+  kontribusi?: {
+    willingToHelp?: string
+    helpTopics?: string
+  }
+  lainnya?: {
+    suggestions?: string
+  }
+  createdAt: string
+  updatedAt: string
+}
+
+interface StrapiResponse {
+  data: StrapiAlumniItem[]
+  meta: {
+    pagination: {
+      total: number
+      page: number
+      pageCount: number
+    }
+  }
+}
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url)
@@ -17,7 +80,7 @@ export async function GET(request: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '100')
 
     // Build Strapi filters
-    const filters: any = {}
+    const filters: StrapiFilters = {}
 
     if (batch) {
       filters.batch = { $eq: parseInt(batch) }
@@ -87,10 +150,10 @@ export async function GET(request: NextRequest) {
       throw new Error(`Strapi API error: ${response.status}`)
     }
 
-    const data = await response.json()
+    const data: StrapiResponse = await response.json()
 
     // Transform Strapi data to Alumni format
-    const alumni = data.data.map((item: any) => ({
+    const alumni = data.data.map((item: StrapiAlumniItem) => ({
       id: item.documentId || item.id,
       name: item.name || '',
       batch: item.batch || 0,
@@ -121,10 +184,11 @@ export async function GET(request: NextRequest) {
       totalPages: data.meta.pagination.pageCount,
       isAuthenticated: false,
     })
-  } catch (error: any) {
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'
     console.error('❌ Error fetching alumni:', error)
     return NextResponse.json(
-      { error: 'Failed to fetch alumni data', details: error.message },
+      { error: 'Failed to fetch alumni data', details: errorMessage },
       { status: 500 },
     )
   }

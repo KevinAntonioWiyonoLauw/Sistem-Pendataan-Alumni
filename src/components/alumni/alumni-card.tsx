@@ -1,14 +1,7 @@
 import React from 'react'
 import Image from 'next/image'
 import { AlumniDisplay } from '@/types/alumni'
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-  CardFooter,
-} from '@/components/ui/card'
+import { Card, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 
 interface AlumniCardProps {
   alumni: AlumniDisplay
