@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import OrganizationChart from '@/components/board/organization-chart'
 
 export const metadata: Metadata = {
@@ -34,11 +35,11 @@ export default function KepengurusanPage() {
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Button Kembali – MOBILE (top left, fixed style) */}
           <div className="sm:hidden mb-6">
-            <a
+            <Link
               href="/"
               className="inline-flex items-center gap-2 text-white 
                          px-3 py-2 rounded-lg
-                         bg-white
+                         hover:bg-white/10 active:bg-white/20
                          transition-all duration-200
                          touch-manipulation"
               aria-label="Kembali ke halaman utama"
@@ -54,13 +55,13 @@ export default function KepengurusanPage() {
                 <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
               </svg>
               <span className="font-medium">Kembali</span>
-            </a>
+            </Link>
           </div>
 
           {/* Title - centered on mobile */}
           <div className="text-center sm:text-center">
             {/* Button Kembali – DESKTOP (absolute positioned) */}
-            <a
+            <Link
               href="/"
               className="hidden sm:inline-flex items-center gap-2 text-ugm-blue bg-white
                          border border-white/40 px-4 py-2 rounded-xl shadow-sm
@@ -82,7 +83,7 @@ export default function KepengurusanPage() {
                 />
               </svg>
               Kembali
-            </a>
+            </Link>
 
             <h1 id="page-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
               Kepengurusan Harian
