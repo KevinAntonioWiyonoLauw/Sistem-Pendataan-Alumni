@@ -7,7 +7,7 @@ import FormSelect from './form-select'
 import FormTextarea from './form-text-area'
 import FormCheckboxGroup from './form-checkbox-group'
 import FormCountrySelect from './form-country-select'
-import type { RegisterAlumniData } from '@/types/alumni'
+import type { AlumniFormData, RegisterAlumniData } from '@/types/alumni'
 
 interface AlumniRegistrationFormProps {
   onSubmit: (data: RegisterAlumniData) => void
@@ -41,10 +41,9 @@ export default function AlumniRegistrationForm({
   onSubmit,
   isSubmitting,
 }: AlumniRegistrationFormProps) {
-  const [formData, setFormData] = useState<RegisterAlumniData>({
+  const [formData, setFormData] = useState<AlumniFormData>({
     name: '',
     batch: new Date().getFullYear(),
-    nim: '',
     email: '',
     phone: '',
     city: '',
@@ -62,11 +61,30 @@ export default function AlumniRegistrationForm({
     isPublic: true,
   })
 
+  const [workFieldOtherInput, setWorkFieldOtherInput] = useState('')
+
   const [errors, setErrors] = useState<Record<string, string>>({})
+
+  const isOtherSelected = formData.workField.includes('lainnya')
 
   const handleInputChange = (name: string, value: string | number | boolean | string[]) => {
     setFormData((prev) => ({ ...prev, [name]: value }))
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }))
+
+    if (name === 'workField' && Array.isArray(value) && !value.includes('lainnya')) {
+      setWorkFieldOtherInput('')
+      if (errors.workFieldOther) setErrors((prev) => ({ ...prev, workFieldOther: '' }))
+    }
+  }
+
+  const handleWorkFieldOtherChange = (
+    _name: string,
+    value: string | number | boolean | string[],
+  ) => {
+    if (typeof value === 'string') {
+      setWorkFieldOtherInput(value)
+      if (errors.workFieldOther) setErrors((prev) => ({ ...prev, workFieldOther: '' }))
+    }
   }
 
   const validateForm = (): boolean => {
@@ -85,13 +103,47 @@ export default function AlumniRegistrationForm({
     if (formData.batch < 1987 || formData.batch > new Date().getFullYear())
       newErrors.batch = 'Tahun masuk tidak valid'
 
+    if (isOtherSelected && !workFieldOtherInput.trim()) {
+      newErrors.workFieldOther = 'Mohon jelaskan bidang pekerjaan lainnya'
+    }
+
     setErrors(newErrors)
     return Object.keys(newErrors).length === 0
   }
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (validateForm()) onSubmit(formData)
+    if (validateForm()) {
+      const workFieldArray = formData.workField.map((field: string) =>
+        field === 'lainnya' && workFieldOtherInput.trim()
+          ? workFieldOtherInput.trim()
+          : WORK_FIELD_OPTIONS.find((opt) => opt.value === field)?.label || field,
+      )
+
+      const workFieldString = workFieldArray.join(', ')
+
+      const submitData: RegisterAlumniData = {
+        name: formData.name,
+        batch: formData.batch,
+        email: formData.email,
+        phone: formData.phone,
+        city: formData.city,
+        country: formData.country,
+        linkedin: formData.linkedin,
+        currentEmployer: formData.currentEmployer,
+        workField: workFieldString,
+        position: formData.position,
+        contactPersonReady: formData.contactPersonReady,
+        alumniOfficerReady: formData.alumniOfficerReady,
+        otherContacts: formData.otherContacts,
+        willingToHelp: formData.willingToHelp,
+        helpTopics: formData.helpTopics,
+        suggestions: formData.suggestions,
+        isPublic: formData.isPublic,
+      }
+
+      onSubmit(submitData)
+    }
   }
 
   const generateBatchOptions = () => {
@@ -117,7 +169,6 @@ export default function AlumniRegistrationForm({
         description={<p className="text-ugm-muted">Informasi dasar tentang identitas Anda</p>}
       >
         <div className="space-y-6 text-ugm-main">
-          {/* Nama Lengkap - Full Width */}
           <div className="w-full">
             <FormInput
               label="Nama Lengkap"
@@ -130,7 +181,6 @@ export default function AlumniRegistrationForm({
             />
           </div>
 
-          {/* Grid untuk Tahun Masuk dan NIM - Equal Width */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormSelect
               label="Tahun Masuk (Angkatan)"
@@ -140,14 +190,6 @@ export default function AlumniRegistrationForm({
               options={generateBatchOptions()}
               error={errors.batch}
               required
-            />
-
-            <FormInput
-              label="NIM (Opsional)"
-              name="nim"
-              value={formData.nim ?? ''}
-              onChange={handleInputChange}
-              placeholder="Contoh: 12/12345/PA/12345"
             />
           </div>
         </div>
@@ -163,7 +205,6 @@ export default function AlumniRegistrationForm({
         description={<p className="text-ugm-muted">Informasi kontak dan tempat tinggal saat ini</p>}
       >
         <div className="space-y-6 text-ugm-main">
-          {/* Grid untuk Email dan Phone */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormInput
               label="Email Aktif"
@@ -187,7 +228,6 @@ export default function AlumniRegistrationForm({
             />
           </div>
 
-          {/* Grid untuk City dan Country */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormInput
               label="Kota Domisili"
@@ -208,7 +248,6 @@ export default function AlumniRegistrationForm({
             />
           </div>
 
-          {/* LinkedIn - Full Width */}
           <div className="w-full">
             <FormInput
               label="Akun LinkedIn (Opsional)"
@@ -263,6 +302,21 @@ export default function AlumniRegistrationForm({
             required
             description="Pilih satu atau lebih bidang yang sesuai dengan pekerjaan Anda"
           />
+
+          {/* Input untuk "Lainnya" - muncul ketika lainnya dipilih */}
+          {isOtherSelected && (
+            <div className="mt-4 pl-0 md:pl-6 animate-in slide-in-from-top-2 duration-200">
+              <FormInput
+                label="Jelaskan Bidang Pekerjaan Lainnya"
+                name="workFieldOther"
+                value={workFieldOtherInput}
+                onChange={handleWorkFieldOtherChange}
+                error={errors.workFieldOther}
+                required
+                placeholder="Contoh: Industri Kreatif, E-commerce, dll."
+              />
+            </div>
+          )}
         </div>
       </FormSection>
 

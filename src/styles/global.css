@@ -109,6 +109,16 @@ a:hover {
   ring-opacity: 0.5;
 }
 
+.btn-thirdary {
+  background-color: var(--ugm-blue-soft);
+  color: var(--ugm-bg-light);
+}
+
+.btn-thirdary:hover {
+  background-color: var(--ugm-blue);
+  transform: scale(1.05);
+}
+
 /* Badge untuk status mahasiswa/alumni */
 .badge {
   display: inline-block;

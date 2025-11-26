@@ -5,18 +5,15 @@ import Link from 'next/link'
 import { Alumni, AlumniDisplay, convertToDisplay } from '@/types/alumni'
 import AlumniCard from '@/components/alumni/alumni-card'
 
-interface FilterOptions {
-  batch: string
-  city: string
-  workField: string
-  currentEmployer: string
-  position: string
-  search: string
+interface PaginationInfo {
+  page: number
+  pageSize: number
+  pageCount: number
+  total: number
 }
 
 export default function AlumniDirectoryPage() {
   const [alumni, setAlumni] = useState<AlumniDisplay[]>([])
-  const [filteredAlumni, setFilteredAlumni] = useState<AlumniDisplay[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [initialized, setInitialized] = useState(false)
@@ -24,20 +21,29 @@ export default function AlumniDirectoryPage() {
   const [searchName, setSearchName] = useState('')
   const [filterBatch, setFilterBatch] = useState('')
 
+  const [pagination, setPagination] = useState<PaginationInfo>({
+    page: 1,
+    pageSize: 12,
+    pageCount: 1,
+    total: 0,
+  })
+
+  const [availableBatches, setAvailableBatches] = useState<string[]>([])
+
   const fetchAlumni = useCallback(
-    async (filters: FilterOptions = {} as FilterOptions) => {
-      if (!initialized) {
-        setLoading(true)
-      }
+    async (page: number = 1, search?: string, batch?: string) => {
+      setLoading(true)
 
       try {
-        const params = new URLSearchParams()
-        if (filters.batch) params.set('batch', filters.batch)
-        if (filters.city) params.set('city', filters.city)
-        if (filters.workField) params.set('workField', filters.workField)
-        if (filters.currentEmployer) params.set('currentEmployer', filters.currentEmployer)
-        if (filters.position) params.set('position', filters.position)
-        if (filters.search) params.set('search', filters.search)
+        const params = new URLSearchParams({
+          page: page.toString(),
+          pageSize: '12',
+          sortField: 'batch',
+          sortOrder: 'desc',
+        })
+
+        if (search?.trim()) params.set('search', search.trim())
+        if (batch) params.set('batch', batch)
 
         const response = await fetch(`/api/alumni/filter?${params}`)
 
@@ -47,8 +53,15 @@ export default function AlumniDirectoryPage() {
           const displayAlumni = rawAlumni.map(convertToDisplay)
 
           setAlumni(displayAlumni)
-          setFilteredAlumni(displayAlumni)
+          setPagination(data.pagination)
           setError('')
+
+          if (!initialized && displayAlumni.length > 0) {
+            const batches = [...new Set(displayAlumni.map((a) => a.batch.toString()))].sort(
+              (a, b) => parseInt(b) - parseInt(a),
+            )
+            setAvailableBatches(batches)
+          }
         } else {
           setError('Gagal memuat data alumni')
         }
@@ -56,8 +69,8 @@ export default function AlumniDirectoryPage() {
         console.error('Error fetching alumni:', err)
         setError('Terjadi kesalahan saat memuat data')
       } finally {
+        setLoading(false)
         if (!initialized) {
-          setLoading(false)
           setInitialized(true)
         }
       }
@@ -65,36 +78,71 @@ export default function AlumniDirectoryPage() {
     [initialized],
   )
 
-  useEffect(() => {
-    let filtered = [...alumni]
-
-    if (searchName.trim()) {
-      filtered = filtered.filter((person) =>
-        person.name.toLowerCase().includes(searchName.toLowerCase().trim()),
-      )
+  // Fetch all batches for filter dropdown
+  const fetchAllBatches = useCallback(async () => {
+    try {
+      const response = await fetch(`/api/alumni/filter?pageSize=1000&page=1`)
+      if (response.ok) {
+        const data = await response.json()
+        const rawAlumni: Alumni[] = data.alumni || []
+        const batches = [...new Set(rawAlumni.map((a) => a.batch.toString()))].sort(
+          (a, b) => parseInt(b) - parseInt(a),
+        )
+        setAvailableBatches(batches)
+      }
+    } catch (err) {
+      console.error('Error fetching batches:', err)
     }
-
-    if (filterBatch) {
-      filtered = filtered.filter((person) => person.batch.toString() === filterBatch)
-    }
-
-    setFilteredAlumni(filtered)
-  }, [searchName, filterBatch, alumni])
-
-  const availableBatches = [...new Set(alumni.map((a) => a.batch.toString()))].sort(
-    (a, b) => parseInt(b) - parseInt(a),
-  )
-
-  const handleResetSimpleFilters = () => {
-    setSearchName('')
-    setFilterBatch('')
-  }
+  }, [])
 
   useEffect(() => {
     if (!initialized) {
-      fetchAlumni()
+      fetchAlumni(1)
+      fetchAllBatches()
     }
-  }, [initialized, fetchAlumni])
+  }, [initialized, fetchAlumni, fetchAllBatches])
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (initialized) {
+        fetchAlumni(1, searchName, filterBatch)
+      }
+    }, 500)
+
+    return () => clearTimeout(timeoutId)
+  }, [searchName, filterBatch, initialized, fetchAlumni])
+
+  const handlePageChange = (newPage: number) => {
+    if (newPage >= 1 && newPage <= pagination.pageCount) {
+      fetchAlumni(newPage, searchName, filterBatch)
+      window.scrollTo({ top: 400, behavior: 'smooth' })
+    }
+  }
+
+  const handleResetFilters = () => {
+    setSearchName('')
+    setFilterBatch('')
+    fetchAlumni(1)
+  }
+
+  const getPageNumbers = () => {
+    const pages: (number | string)[] = []
+    const { page, pageCount } = pagination
+
+    if (pageCount <= 7) {
+      for (let i = 1; i <= pageCount; i++) pages.push(i)
+    } else {
+      if (page <= 3) {
+        pages.push(1, 2, 3, 4, '...', pageCount)
+      } else if (page >= pageCount - 2) {
+        pages.push(1, '...', pageCount - 3, pageCount - 2, pageCount - 1, pageCount)
+      } else {
+        pages.push(1, '...', page - 1, page, page + 1, '...', pageCount)
+      }
+    }
+
+    return pages
+  }
 
   if (loading && !initialized) {
     return (
@@ -117,6 +165,43 @@ export default function AlumniDirectoryPage() {
           </h1>
         </div>
 
+        {/* Privacy Notice & Intro */}
+        <div className="mb-8 rounded-xl p-6 border-2 border-blue-200 bg-blue-50 shadow-md">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-8 h-8 text-ugm-blue"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h3 className="text-lg font-bold text-ugm-main mb-2">
+                Yth. Alumni Ilmu Komputer UGM
+              </h3>
+              <p className="text-ugm-muted text-sm leading-relaxed mb-3">
+                Direktori ini dibuat untuk mempererat hubungan antar alumni dan memudahkan
+                networking sesama alumni Ilmu Komputer UGM. Kami berkomitmen menjaga privasi data
+                Anda:
+              </p>
+              <ul className="text-ugm-muted text-sm space-y-1 list-disc list-inside">
+                <li>1. Data Anda hanya ditampilkan kepada sesama alumni dan mahasiswa</li>
+                <li>2. Kami tidak akan menyebarkan data pribadi Anda kepada pihak ketiga</li>
+                <li>3. Anda dapat memilih untuk menampilkan atau menyembunyikan profil Anda</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        {/* CTA Survey */}
         <div className="mb-8 rounded-xl p-8 border-2 border-ugm-blue shadow-xl bg-ugm-blue-soft flex flex-col items-center justify-center text-center">
           <h3 className="text-2xl font-bold text-ugm-light mb-3">
             Belum Terdaftar di Direktori Alumni?
@@ -138,6 +223,42 @@ export default function AlumniDirectoryPage() {
             </svg>
             Isi Survey Sekarang
           </Link>
+        </div>
+
+        {/* Data Management Notice */}
+        <div className="mb-8 rounded-xl p-5 border-2 border-ugm-yellow bg-amber-50 shadow-md">
+          <div className="flex items-start gap-4">
+            <div className="flex-shrink-0">
+              <svg
+                className="w-6 h-6 text-amber-700"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-base font-bold text-amber-800 mb-1">
+                Ingin Mengubah atau Menghapus Data?
+              </h4>
+              <p className="text-amber-700 text-sm">
+                Jika Anda ingin mengubah atau menghapus data Anda dari direktori alumni, silakan
+                hubungi admin melalui email:{' '}
+                <a
+                  href="mailto:surat.omahti@gmail.com"
+                  className="font-semibold underline hover:text-amber-900"
+                >
+                  surat.omahti@gmail.com
+                </a>
+              </p>
+            </div>
+          </div>
         </div>
 
         {/* Simple Filter */}
@@ -182,7 +303,7 @@ export default function AlumniDirectoryPage() {
             {/* Reset Button */}
             <div className="flex items-end">
               <button
-                onClick={handleResetSimpleFilters}
+                onClick={handleResetFilters}
                 className="w-full px-4 py-2.5 rounded-lg transition-all duration-200 border-2 border-ugm-border-subtle bg-ugm-bg-subtle text-ugm-main font-semibold hover:bg-gray-200 hover:border-gray-400 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-ugm-blue focus:ring-offset-2"
               >
                 Reset Filter
@@ -225,23 +346,107 @@ export default function AlumniDirectoryPage() {
         {/* Stats */}
         <div className="mb-6 text-center">
           <p className="text-ugm-muted text-base">
-            Menampilkan <span className="font-bold text-ugm-main">{filteredAlumni.length}</span>
-            {alumni.length !== filteredAlumni.length && (
-              <span className="text-ugm-main"> dari {alumni.length}</span>
-            )}{' '}
-            alumni
+            Menampilkan{' '}
+            <span className="font-bold text-ugm-main">
+              {(pagination.page - 1) * pagination.pageSize + 1} -{' '}
+              {Math.min(pagination.page * pagination.pageSize, pagination.total)}
+            </span>{' '}
+            dari <span className="font-bold text-ugm-main">{pagination.total}</span> alumni
           </p>
         </div>
 
+        {/* Loading Overlay */}
+        {loading && initialized && (
+          <div className="mb-6 flex justify-center">
+            <div className="flex items-center gap-2 px-4 py-2 bg-blue-50 rounded-lg">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-ugm-blue"></div>
+              <span className="text-ugm-main text-sm">Memuat...</span>
+            </div>
+          </div>
+        )}
+
         {/* Alumni Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredAlumni.map((person) => (
+          {alumni.map((person) => (
             <AlumniCard key={person.id} alumni={person} />
           ))}
         </div>
 
+        {/* Pagination */}
+        {pagination.pageCount > 1 && (
+          <div className="mt-10 flex flex-col items-center gap-4">
+            <div className="flex items-center gap-2 flex-wrap justify-center">
+              {/* Previous Button */}
+              <button
+                onClick={() => handlePageChange(pagination.page - 1)}
+                disabled={pagination.page === 1}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  pagination.page === 1
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white border-2 border-ugm-border-subtle text-ugm-main hover:bg-ugm-bg-subtle hover:border-ugm-blue'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 19l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Page Numbers */}
+              {getPageNumbers().map((pageNum, index) =>
+                pageNum === '...' ? (
+                  <span key={`ellipsis-${index}`} className="px-3 py-2 text-ugm-muted">
+                    ...
+                  </span>
+                ) : (
+                  <button
+                    key={pageNum}
+                    onClick={() => handlePageChange(pageNum as number)}
+                    className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                      pagination.page === pageNum
+                        ? 'bg-ugm-blue text-white shadow-md'
+                        : 'bg-white border-2 border-ugm-border-subtle text-ugm-main hover:bg-ugm-bg-subtle hover:border-ugm-blue'
+                    }`}
+                  >
+                    {pageNum}
+                  </button>
+                ),
+              )}
+
+              {/* Next Button */}
+              <button
+                onClick={() => handlePageChange(pagination.page + 1)}
+                disabled={pagination.page === pagination.pageCount}
+                className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  pagination.page === pagination.pageCount
+                    ? 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                    : 'bg-white border-2 border-ugm-border-subtle text-ugm-main hover:bg-ugm-bg-subtle hover:border-ugm-blue'
+                }`}
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 5l7 7-7 7"
+                  />
+                </svg>
+              </button>
+            </div>
+
+            {/* Page Info */}
+            <p className="text-sm text-ugm-muted">
+              Halaman {pagination.page} dari {pagination.pageCount}
+            </p>
+          </div>
+        )}
+
         {/* Empty State */}
-        {filteredAlumni.length === 0 && initialized && (
+        {alumni.length === 0 && initialized && !loading && (
           <div className="text-center py-16">
             <div className="w-24 h-24 mx-auto mb-6 rounded-full flex items-center justify-center border-4 border-ugm-border-subtle bg-ugm-bg-subtle">
               <svg
@@ -266,7 +471,7 @@ export default function AlumniDirectoryPage() {
             </p>
             {(searchName || filterBatch) && (
               <button
-                onClick={handleResetSimpleFilters}
+                onClick={handleResetFilters}
                 className="px-6 py-3 rounded-lg transition-all bg-ugm-blue text-white font-bold hover:bg-ugm-blue-soft shadow-lg hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-4 focus:ring-ugm-blue focus:ring-offset-2"
               >
                 Reset Filter

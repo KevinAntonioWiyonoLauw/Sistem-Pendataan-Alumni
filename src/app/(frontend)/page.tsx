@@ -50,6 +50,13 @@ export default function Home() {
             </svg>
             Isi Survey Alumni
           </Link>
+
+          <Link
+            href="/kepengurusan-harian"
+            className="btn-thirdary inline-flex items-center justify-center px-8 py-4 rounded-lg font-semibold transition-all duration-200 hover:scale-105 focus:outline-none focus:ring-4 focus:ring-offset-2 shadow-lg hover:shadow-xl border-2"
+          >
+            Susunan Pengurus Harian
+          </Link>
         </div>
       </div>
     </div>

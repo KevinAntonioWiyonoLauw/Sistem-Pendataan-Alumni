@@ -3,7 +3,6 @@ import { NextRequest, NextResponse } from 'next/server'
 const STRAPI_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
 const STRAPI_API_KEY = process.env.STRAPI_API_KEY
 
-// Define types for better type safety
 interface StrapiFilters {
   batch?: { $eq: number }
   name?: { $containsi: string }
@@ -13,9 +12,12 @@ interface StrapiFilters {
     }
   }
   pekerjaan?: {
-    workField?: { $eq: string }
+    workField?: { $containsi: string }
     currentEmployer?: { $containsi: string }
     position?: { $containsi: string }
+  }
+  metadata?: {
+    isPublic?: { $eq: boolean }
   }
 }
 
@@ -24,7 +26,6 @@ interface StrapiAlumniItem {
   id: string
   name?: string
   batch?: number
-  nim?: string
   kontak?: {
     email?: string
     phone?: string
@@ -59,9 +60,10 @@ interface StrapiResponse {
   data: StrapiAlumniItem[]
   meta: {
     pagination: {
-      total: number
       page: number
+      pageSize: number
       pageCount: number
+      total: number
     }
   }
 }
@@ -76,11 +78,18 @@ export async function GET(request: NextRequest) {
     const currentEmployer = searchParams.get('currentEmployer')
     const position = searchParams.get('position')
     const search = searchParams.get('search')
-    const page = parseInt(searchParams.get('page') || '1')
-    const limit = parseInt(searchParams.get('limit') || '100')
 
-    // Build Strapi filters
-    const filters: StrapiFilters = {}
+    const page = parseInt(searchParams.get('page') || '1')
+    const pageSize = parseInt(searchParams.get('pageSize') || '12')
+
+    const sortField = searchParams.get('sortField') || 'batch'
+    const sortOrder = searchParams.get('sortOrder') || 'desc'
+
+    const filters: StrapiFilters = {
+      metadata: {
+        isPublic: { $eq: true },
+      },
+    }
 
     if (batch) {
       filters.batch = { $eq: parseInt(batch) }
@@ -100,7 +109,7 @@ export async function GET(request: NextRequest) {
 
     if (workField) {
       filters.pekerjaan = {
-        workField: { $eq: workField },
+        workField: { $containsi: workField },
       }
     }
 
@@ -118,22 +127,56 @@ export async function GET(request: NextRequest) {
       }
     }
 
-    // Build URL params
     const params = new URLSearchParams({
       'pagination[page]': page.toString(),
-      'pagination[pageSize]': limit.toString(),
+      'pagination[pageSize]': pageSize.toString(),
+      'pagination[withCount]': 'true',
       'populate[kontak][populate][location]': 'true',
       'populate[pekerjaan]': 'true',
       'populate[jejaring]': 'true',
       'populate[kontribusi]': 'true',
       'populate[lainnya]': 'true',
-      'sort[0]': 'batch:desc',
-      'sort[1]': 'name:asc',
+      'populate[metadata]': 'true',
     })
 
-    // Add filters if exist
-    if (Object.keys(filters).length > 0) {
-      params.append('filters', JSON.stringify(filters))
+    params.append('sort[0]', `${sortField}:${sortOrder}`)
+    params.append('filters[metadata][isPublic][$eq]', 'true')
+    params.append('sort[1]', 'name:asc')
+
+    if (filters.batch) {
+      params.append('filters[batch][$eq]', filters.batch.$eq.toString())
+    }
+
+    if (filters.name) {
+      params.append('filters[name][$containsi]', filters.name.$containsi)
+    }
+
+    if (filters.kontak?.location?.city) {
+      params.append(
+        'filters[kontak][location][city][$containsi]',
+        filters.kontak.location.city.$containsi,
+      )
+    }
+
+    if (filters.pekerjaan?.workField) {
+      params.append(
+        'filters[pekerjaan][workField][$containsi]',
+        filters.pekerjaan.workField.$containsi,
+      )
+    }
+
+    if (filters.pekerjaan?.currentEmployer) {
+      params.append(
+        'filters[pekerjaan][currentEmployer][$containsi]',
+        filters.pekerjaan.currentEmployer.$containsi,
+      )
+    }
+
+    if (filters.pekerjaan?.position) {
+      params.append(
+        'filters[pekerjaan][position][$containsi]',
+        filters.pekerjaan.position.$containsi,
+      )
     }
 
     const url = `${STRAPI_URL}/api/alumnis?${params}`
@@ -142,6 +185,7 @@ export async function GET(request: NextRequest) {
       headers: {
         Authorization: `Bearer ${STRAPI_API_KEY}`,
       },
+      cache: 'no-store',
     })
 
     if (!response.ok) {
@@ -152,37 +196,51 @@ export async function GET(request: NextRequest) {
 
     const data: StrapiResponse = await response.json()
 
-    // Transform Strapi data to Alumni format
     const alumni = data.data.map((item: StrapiAlumniItem) => ({
       id: item.documentId || item.id,
       name: item.name || '',
       batch: item.batch || 0,
-      nim: item.nim || '',
-      email: item.kontak?.email || '',
-      phone: item.kontak?.phone || '',
-      linkedin: item.kontak?.linkedin || '',
-      city: item.kontak?.location?.city || '',
-      country: item.kontak?.location?.country || 'Indonesia',
-      currentEmployer: item.pekerjaan?.currentEmployer || '',
-      workField: item.pekerjaan?.workField ? [item.pekerjaan.workField] : [],
-      position: item.pekerjaan?.position || '',
-      contactPersonReady: item.jejaring?.contactPersonReady === 'ya',
-      alumniOfficerReady: item.jejaring?.alumniOfficerReady === 'ya',
-      otherContacts: item.jejaring?.otherContacts || '',
-      willingToHelp: item.kontribusi?.willingToHelp ? [item.kontribusi.willingToHelp] : [],
-      helpTopics: item.kontribusi?.helpTopics || '',
-      suggestions: item.lainnya?.suggestions || '',
-      isPublic: true,
+      kontak: {
+        email: item.kontak?.email || '',
+        phone: item.kontak?.phone || '',
+        linkedin: item.kontak?.linkedin || '',
+        location: {
+          city: item.kontak?.location?.city || '',
+          country: item.kontak?.location?.country || 'Indonesia',
+        },
+      },
+      pekerjaan: {
+        currentEmployer: item.pekerjaan?.currentEmployer || '',
+        workField: item.pekerjaan?.workField || '',
+        position: item.pekerjaan?.position || '',
+      },
+      jejaring: {
+        contactPersonReady: item.jejaring?.contactPersonReady || 'tidak',
+        alumniOfficerReady: item.jejaring?.alumniOfficerReady || 'tidak',
+        otherContacts: item.jejaring?.otherContacts || '',
+      },
+      kontribusi: {
+        willingToHelp: item.kontribusi?.willingToHelp || '',
+        helpTopics: item.kontribusi?.helpTopics || '',
+      },
+      lainnya: {
+        suggestions: item.lainnya?.suggestions || '',
+      },
+      metadata: {
+        isPublic: true,
+      },
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
     }))
 
     return NextResponse.json({
       alumni,
-      totalDocs: data.meta.pagination.total,
-      page: data.meta.pagination.page,
-      totalPages: data.meta.pagination.pageCount,
-      isAuthenticated: false,
+      pagination: {
+        page: data.meta.pagination.page,
+        pageSize: data.meta.pagination.pageSize,
+        pageCount: data.meta.pagination.pageCount,
+        total: data.meta.pagination.total,
+      },
     })
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : 'Unknown error occurred'

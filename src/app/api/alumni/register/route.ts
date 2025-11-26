@@ -4,22 +4,6 @@ import type { RegisterAlumniData } from '@/types/alumni'
 const STRAPI_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:1337'
 const STRAPI_API_KEY = process.env.STRAPI_API_KEY
 
-const VALID_WORK_FIELDS = [
-  'akademisi',
-  'pemerintah',
-  'lembaga-pemerintah',
-  'wirausaha',
-  'swasta',
-  'konsultan',
-  'teknologi',
-  'keuangan',
-  'media',
-  'kesehatan',
-  'pendidikan',
-  'nonprofit',
-  'lainnya',
-] as const
-
 const VALID_HELP_TYPES = [
   'mentoring-career',
   'magang-riset',
@@ -27,23 +11,25 @@ const VALID_HELP_TYPES = [
   'networking',
 ] as const
 
-function validateWorkFields(fields: string[]): Array<(typeof VALID_WORK_FIELDS)[number]> {
-  return fields.filter((field) =>
-    VALID_WORK_FIELDS.includes(field as (typeof VALID_WORK_FIELDS)[number]),
-  ) as Array<(typeof VALID_WORK_FIELDS)[number]>
+type ValidHelpType = (typeof VALID_HELP_TYPES)[number]
+
+function getFirstValidHelpType(types: string[]): ValidHelpType | null {
+  for (const type of types) {
+    if (VALID_HELP_TYPES.includes(type as ValidHelpType)) {
+      return type as ValidHelpType
+    }
+  }
+  return null
 }
 
-function validateHelpTypes(types: string[]): Array<(typeof VALID_HELP_TYPES)[number]> {
-  return types.filter((type) =>
-    VALID_HELP_TYPES.includes(type as (typeof VALID_HELP_TYPES)[number]),
-  ) as Array<(typeof VALID_HELP_TYPES)[number]>
+function validateHelpTypes(types: string[]): ValidHelpType[] {
+  return types.filter((type) => VALID_HELP_TYPES.includes(type as ValidHelpType)) as ValidHelpType[]
 }
 
 export async function POST(request: NextRequest) {
   try {
     const data: RegisterAlumniData = await request.json()
 
-    // Validations
     if (!data.name || !data.email || !data.batch) {
       return NextResponse.json({ error: 'Nama, email, dan angkatan wajib diisi' }, { status: 400 })
     }
@@ -52,7 +38,12 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Kota wajib diisi' }, { status: 400 })
     }
 
-    if (!data.currentEmployer || !data.position || !data.workField || data.workField.length === 0) {
+    if (
+      !data.currentEmployer ||
+      !data.position ||
+      !data.workField ||
+      data.workField.trim() === ''
+    ) {
       return NextResponse.json(
         { error: 'Data pekerjaan (perusahaan, posisi, bidang kerja) wajib diisi' },
         { status: 400 },
@@ -66,7 +57,6 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Check if email already exists
     try {
       const checkParams = new URLSearchParams({
         'filters[kontak][email][$eq]': data.email.toLowerCase(),
@@ -91,13 +81,11 @@ export async function POST(request: NextRequest) {
       console.error('Error checking existing email:', error)
     }
 
-    // Email validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
     if (!emailRegex.test(data.email)) {
       return NextResponse.json({ error: 'Format email tidak valid' }, { status: 400 })
     }
 
-    // Phone validation
     if (data.phone) {
       const phoneRegex = /^[\+]?[\d\s\-\(\)]{7,20}$/
       const cleanPhone = data.phone.replace(/\s|-|\(|\)/g, '')
@@ -112,12 +100,10 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // LinkedIn validation
     if (data.linkedin && !data.linkedin.includes('linkedin.com')) {
       return NextResponse.json({ error: 'URL LinkedIn tidak valid' }, { status: 400 })
     }
 
-    // Batch validation
     const currentYear = new Date().getFullYear()
     if (data.batch < 1987 || data.batch > currentYear) {
       return NextResponse.json(
@@ -126,19 +112,32 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    const validatedWorkFields = validateWorkFields(data.workField)
+    // willingToHelp di Strapi adalah ENUM single value, bukan array
+    // Ambil nilai pertama yang valid, sisanya masukkan ke helpTopics
     const validatedHelpTypes = data.willingToHelp ? validateHelpTypes(data.willingToHelp) : []
+    const primaryHelpType = getFirstValidHelpType(validatedHelpTypes)
 
-    if (validatedWorkFields.length === 0) {
-      return NextResponse.json({ error: 'Bidang pekerjaan tidak valid' }, { status: 400 })
+    // Gabungkan help types lainnya ke helpTopics
+    const additionalHelpTypes = validatedHelpTypes.slice(1)
+    const helpTypesLabels: Record<ValidHelpType, string> = {
+      'mentoring-career': 'Mentoring Career',
+      'magang-riset': 'Kesempatan Magang/Riset',
+      'beasiswa-studi': 'Sharing Beasiswa/Studi Lanjut',
+      networking: 'Networking Professional',
     }
 
-    // Build Strapi-compatible data structure
+    let combinedHelpTopics = data.helpTopics || ''
+    if (additionalHelpTypes.length > 0) {
+      const additionalLabels = additionalHelpTypes.map((t) => helpTypesLabels[t]).join(', ')
+      combinedHelpTopics = combinedHelpTopics
+        ? `${combinedHelpTopics}; Juga bersedia: ${additionalLabels}`
+        : `Juga bersedia: ${additionalLabels}`
+    }
+
     const alumniData = {
       data: {
         name: data.name,
         batch: data.batch,
-        nim: data.nim || null,
         kontak: {
           email: data.email?.toLowerCase() || null,
           phone: data.phone || null,
@@ -150,7 +149,7 @@ export async function POST(request: NextRequest) {
         },
         pekerjaan: {
           currentEmployer: data.currentEmployer || null,
-          workField: validatedWorkFields[0] || null,
+          workField: data.workField || null,
           position: data.position || null,
         },
         jejaring: {
@@ -159,11 +158,15 @@ export async function POST(request: NextRequest) {
           otherContacts: data.otherContacts || null,
         },
         kontribusi: {
-          willingToHelp: validatedHelpTypes[0] || null,
-          helpTopics: data.helpTopics || null,
+          // Single value untuk enum
+          willingToHelp: primaryHelpType,
+          helpTopics: combinedHelpTopics || null,
         },
         lainnya: {
           suggestions: data.suggestions || null,
+        },
+        metadata: {
+          isPublic: data.isPublic ?? true,
         },
       },
     }
@@ -201,13 +204,23 @@ export async function POST(request: NextRequest) {
       },
       { status: 201 },
     )
-  } catch (error: any) {
-    console.error('Error creating alumni:', error.message)
+  } catch (error: unknown) {
+    const errorMessage = error instanceof Error ? error.message : 'Unknown error'
+    console.error('Error creating alumni:', errorMessage)
 
-    if (error.response?.data?.error) {
+    if (
+      error &&
+      typeof error === 'object' &&
+      'response' in error &&
+      (error as { response?: { data?: { error?: { message?: string } }; status?: number } })
+        .response?.data?.error
+    ) {
+      const typedError = error as {
+        response: { data: { error: { message?: string } }; status?: number }
+      }
       return NextResponse.json(
-        { error: error.response.data.error.message || 'Terjadi kesalahan server' },
-        { status: error.response.status || 500 },
+        { error: typedError.response.data.error.message || 'Terjadi kesalahan server' },
+        { status: typedError.response.status || 500 },
       )
     }
 
