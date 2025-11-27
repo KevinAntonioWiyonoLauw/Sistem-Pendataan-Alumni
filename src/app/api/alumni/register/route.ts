@@ -26,6 +26,20 @@ function validateHelpTypes(types: string[]): ValidHelpType[] {
   return types.filter((type) => VALID_HELP_TYPES.includes(type as ValidHelpType)) as ValidHelpType[]
 }
 
+// Helper function to normalize workField to array
+function normalizeWorkField(workField: string | string[] | undefined): string[] {
+  if (!workField) return []
+  if (Array.isArray(workField)) return workField
+  if (typeof workField === 'string') {
+    // Handle comma-separated string
+    return workField
+      .split(',')
+      .map((field) => field.trim())
+      .filter(Boolean)
+  }
+  return []
+}
+
 export async function POST(request: NextRequest) {
   try {
     const data: RegisterAlumniData = await request.json()
@@ -38,12 +52,11 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Kota wajib diisi' }, { status: 400 })
     }
 
-    if (
-      !data.currentEmployer ||
-      !data.position ||
-      !data.workField ||
-      data.workField.trim() === ''
-    ) {
+    // Normalize workField to ensure it's always an array
+    const workFieldArray = normalizeWorkField(data.workField)
+
+    // Validasi workField yang sudah pasti array
+    if (!data.currentEmployer || !data.position || workFieldArray.length === 0) {
       return NextResponse.json(
         { error: 'Data pekerjaan (perusahaan, posisi, bidang kerja) wajib diisi' },
         { status: 400 },
@@ -134,6 +147,9 @@ export async function POST(request: NextRequest) {
         : `Juga bersedia: ${additionalLabels}`
     }
 
+    // Convert workField array to string for Strapi
+    const normalizedWorkField = workFieldArray.join(', ')
+
     const alumniData = {
       data: {
         name: data.name,
@@ -149,7 +165,7 @@ export async function POST(request: NextRequest) {
         },
         pekerjaan: {
           currentEmployer: data.currentEmployer || null,
-          workField: data.workField || null,
+          workField: normalizedWorkField || null,
           position: data.position || null,
         },
         jejaring: {

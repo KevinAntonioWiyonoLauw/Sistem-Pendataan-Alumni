@@ -1,7 +1,6 @@
 'use client'
 
 import {
-  boardMembers,
   getChairperson,
   getViceChairpersons,
   getSecretaries,
