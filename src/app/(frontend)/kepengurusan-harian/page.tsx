@@ -32,14 +32,22 @@ export default function KepengurusanPage() {
         </div>
 
         {/* Container */}
+        <div className="text-center">
+          <h1 id="page-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
+            Kepengurusan Harian
+          </h1>
+        </div>
+      </section>
+
+      {/* Main Content */}
+      <section className="py-10 sm:py-14 lg:py-16">
         <div className="max-w-8xl mx-auto px-4 sm:px-6 lg:px-8 relative">
           {/* Button Kembali – MOBILE (top left, fixed style) */}
           <div className="sm:hidden mb-6">
             <Link
               href="/"
-              className="inline-flex items-center gap-2 text-white 
-                         px-3 py-2 rounded-lg
-                         hover:bg-white/10 active:bg-white/20
+              className="inline-flex items-center gap-2 text-ugm-light ml-3
+                         px-3 py-2 rounded-lg bg-ugm-blue
                          transition-all duration-200
                          touch-manipulation"
               aria-label="Kembali ke halaman utama"
@@ -63,7 +71,7 @@ export default function KepengurusanPage() {
             {/* Button Kembali – DESKTOP (absolute positioned) */}
             <Link
               href="/"
-              className="hidden sm:inline-flex items-center gap-2 text-ugm-blue bg-white
+              className="hidden sm:inline-flex items-center gap-2 text-ugm-light bg-ugm-blue ml-6
                          border border-white/40 px-4 py-2 rounded-xl shadow-sm
                          hover:bg-gray-50 transition-all duration-200
                          absolute left-6 top-1/2 -translate-y-1/2"
@@ -84,16 +92,8 @@ export default function KepengurusanPage() {
               </svg>
               Kembali
             </Link>
-
-            <h1 id="page-title" className="text-3xl sm:text-4xl lg:text-5xl font-bold text-white">
-              Kepengurusan Harian
-            </h1>
           </div>
         </div>
-      </section>
-
-      {/* Main Content */}
-      <section className="py-10 sm:py-14 lg:py-16">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <OrganizationChart />
         </div>
