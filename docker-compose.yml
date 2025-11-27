@@ -17,9 +17,15 @@ services:
     volumes:
       - web-alumni-cache:/app/.next/cache
       - web-alumni-data:/app/data
+    networks:
+      - proxy_net
 
 volumes:
   web-alumni-cache:
     driver: local
   web-alumni-data:
     driver: local
+
+networks:
+  proxy_net:
+    external: true
