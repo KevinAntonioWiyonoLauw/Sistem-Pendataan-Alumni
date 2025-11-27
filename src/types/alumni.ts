@@ -89,6 +89,27 @@ export interface RegisterAlumniData {
   isPublic?: boolean
 }
 
+export interface AlumniFormData {
+  name: string
+  batch: number
+  nim?: string
+  email: string
+  phone: string
+  city: string
+  country?: string
+  linkedin?: string
+  currentEmployer: string
+  workField: string[]
+  position: string
+  contactPersonReady: 'ya' | 'tidak'
+  alumniOfficerReady: 'ya' | 'tidak'
+  otherContacts?: string
+  willingToHelp?: string[]
+  helpTopics?: string
+  suggestions?: string
+  isPublic: boolean
+}
+
 export interface AlumniFilter {
   search?: string
   batch?: number

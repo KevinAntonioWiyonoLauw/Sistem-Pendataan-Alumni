@@ -114,13 +114,11 @@ export default function AlumniRegistrationForm({
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
     if (validateForm()) {
-      const workFieldArray = formData.workField.map((field: string) =>
-        field === 'lainnya' && workFieldOtherInput.trim()
-          ? workFieldOtherInput.trim()
-          : WORK_FIELD_OPTIONS.find((opt) => opt.value === field)?.label || field,
+      // Map workField array, replacing 'lainnya' with custom input if provided
+      const workFieldArray = formData.workField.map(
+        (field: string) =>
+          field === 'lainnya' && workFieldOtherInput.trim() ? workFieldOtherInput.trim() : field, // Keep the original value (e.g., 'teknologi', 'swasta')
       )
-
-      const workFieldString = workFieldArray.join(', ')
 
       const submitData: RegisterAlumniData = {
         name: formData.name,
@@ -131,7 +129,7 @@ export default function AlumniRegistrationForm({
         country: formData.country,
         linkedin: formData.linkedin,
         currentEmployer: formData.currentEmployer,
-        workField: workFieldString,
+        workField: workFieldArray, // Send as array ✅
         position: formData.position,
         contactPersonReady: formData.contactPersonReady,
         alumniOfficerReady: formData.alumniOfficerReady,
@@ -142,6 +140,7 @@ export default function AlumniRegistrationForm({
         isPublic: formData.isPublic,
       }
 
+      console.log('📤 Submitting data:', submitData)
       onSubmit(submitData)
     }
   }
