@@ -127,6 +127,22 @@ export async function GET(request: NextRequest) {
       }
     }
 
+    function normalizeCapitalization(text: string | undefined): string {
+      if (!text) return ''
+
+      // Capitalize first letter of each word
+      return text
+        .split(',')
+        .map((item) => item.trim())
+        .map((item) =>
+          item
+            .split(' ')
+            .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
+            .join(' '),
+        )
+        .join(', ')
+    }
+
     const params = new URLSearchParams({
       'pagination[page]': page.toString(),
       'pagination[pageSize]': pageSize.toString(),
@@ -210,9 +226,9 @@ export async function GET(request: NextRequest) {
         },
       },
       pekerjaan: {
-        currentEmployer: item.pekerjaan?.currentEmployer || '',
-        workField: item.pekerjaan?.workField || '',
-        position: item.pekerjaan?.position || '',
+        currentEmployer: normalizeCapitalization(item.pekerjaan?.currentEmployer) || '',
+        workField: normalizeCapitalization(item.pekerjaan?.workField) || '',
+        position: normalizeCapitalization(item.pekerjaan?.position) || '',
       },
       jejaring: {
         contactPersonReady: item.jejaring?.contactPersonReady || 'tidak',
