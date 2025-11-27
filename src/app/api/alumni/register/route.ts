@@ -125,27 +125,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // willingToHelp di Strapi adalah ENUM single value, bukan array
-    // Ambil nilai pertama yang valid, sisanya masukkan ke helpTopics
     const validatedHelpTypes = data.willingToHelp ? validateHelpTypes(data.willingToHelp) : []
-    const primaryHelpType = getFirstValidHelpType(validatedHelpTypes)
-
-    // Gabungkan help types lainnya ke helpTopics
-    const additionalHelpTypes = validatedHelpTypes.slice(1)
-    const helpTypesLabels: Record<ValidHelpType, string> = {
-      'mentoring-career': 'Mentoring Career',
-      'magang-riset': 'Kesempatan Magang/Riset',
-      'beasiswa-studi': 'Sharing Beasiswa/Studi Lanjut',
-      networking: 'Networking Professional',
-    }
-
-    let combinedHelpTopics = data.helpTopics || ''
-    if (additionalHelpTypes.length > 0) {
-      const additionalLabels = additionalHelpTypes.map((t) => helpTypesLabels[t]).join(', ')
-      combinedHelpTopics = combinedHelpTopics
-        ? `${combinedHelpTopics}; Juga bersedia: ${additionalLabels}`
-        : `Juga bersedia: ${additionalLabels}`
-    }
 
     // Convert workField array to string for Strapi
     const normalizedWorkField = workFieldArray.join(', ')
@@ -175,8 +155,8 @@ export async function POST(request: NextRequest) {
         },
         kontribusi: {
           // Single value untuk enum
-          willingToHelp: primaryHelpType,
-          helpTopics: combinedHelpTopics || null,
+          willingToHelp: validatedHelpTypes.length > 0 ? validatedHelpTypes : null,
+          helpTopics: data.helpTopics || null,
         },
         lainnya: {
           suggestions: data.suggestions || null,
