@@ -417,6 +417,30 @@ export default function AlumniRegistrationForm({
         </div>
       </FormSection>
 
+      <FormSection
+        title={
+          <span className="text-xl md:text-2xl font-semibold text-ugm-main">
+            Grup WhatsApp Alumni
+          </span>
+        }
+        description={
+          <p className="text-ugm-muted">
+            Klik tombol di bawah untuk bergabung ke grup WhatsApp alumni.
+          </p>
+        }
+      >
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 sm:gap-3">
+          <a
+            href="https://chat.whatsapp.com/3EVoPG0UFRb2b8ofvrvHmf"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center rounded-lg bg-[#25D366] px-4 py-2 text-sm sm:text-base font-semibold text-white shadow-md hover:bg-[#1EBE5A] focus:outline-none focus:ring-2 focus:ring-[#25D366]/70 focus:ring-offset-2 focus:ring-offset-gray-900 transition-colors"
+          >
+            Gabung Grup WhatsApp
+          </a>
+        </div>
+      </FormSection>
+
       {/* ========== VISIBILITY OPTION ========== */}
       <div className="border border-gray-700 rounded-lg p-5 sm:p-6">
         <div className="flex flex-col sm:flex-row items-start sm:space-x-3 space-y-3 sm:space-y-0">
