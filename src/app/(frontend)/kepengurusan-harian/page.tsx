@@ -100,7 +100,7 @@ export default function KepengurusanPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="py-10 sm:py-14 bg-white border-t border-gray-200">
+      <section className="py-10 sm:py-14  border-t border-gray-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-xl sm:text-2xl font-bold text-gray-900 mb-4">

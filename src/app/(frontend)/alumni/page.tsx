@@ -163,7 +163,7 @@ export default function AlumniDirectoryPage() {
         <button
           type="button"
           onClick={() => router.back()}
-          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-ugm-border-subtle bg-ugm-blue px-4 py-2 text-ugm-light font-semibold shadow-sm hover:bg-ugm-blue-soft focus:outline-none focus:ring-2 focus:ring-ugm-blue"
+          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-ugm-border-subtle bg-ugm-blue px-4 py-2 text-ugm-light font-semibold shadow-sm hover:bg-ugm-blue-soft hover:underline hover:scale-105 transition-transform duration-200 focus:outline-none focus:ring-2 focus:ring-ugm-blue"
         >
           <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
             <path

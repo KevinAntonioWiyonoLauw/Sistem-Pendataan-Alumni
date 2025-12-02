@@ -420,12 +420,12 @@ export default function AlumniRegistrationForm({
       <FormSection
         title={
           <span className="text-xl md:text-2xl font-semibold text-ugm-main">
-            Grup WhatsApp Alumni
+            Grup WhatsApp Alumni Ilmu Komputer
           </span>
         }
         description={
           <p className="text-ugm-muted">
-            Klik tombol di bawah untuk bergabung ke grup WhatsApp alumni.
+            Klik tombol di bawah untuk bergabung ke grup WhatsApp alumni Ilmu Komputer.
           </p>
         }
       >

@@ -2,6 +2,7 @@ import React from 'react'
 import '@/styles/global.css'
 import '@/styles/theme.css'
 import '@/styles/typography.css'
+import Footer from '@/components/footer'
 
 export const metadata = {
   description: 'Terhubung dengan sesama alumni Computer Science Universitas Gadjah Mada',
@@ -16,6 +17,7 @@ export default async function RootLayout(props: { children: React.ReactNode }) {
       <body>
         <main>{children}</main>
       </body>
+      <Footer />
     </html>
   )
 }
