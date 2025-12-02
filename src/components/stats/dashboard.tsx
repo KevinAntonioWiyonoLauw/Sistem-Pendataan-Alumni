@@ -33,7 +33,7 @@ export default function AlumniDashboard() {
     }
 
     fetchToken()
-  }, [])
+  }, [METABASE_SITE_URL])
 
   if (loading) {
     return (

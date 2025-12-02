@@ -13,15 +13,6 @@ const VALID_HELP_TYPES = [
 
 type ValidHelpType = (typeof VALID_HELP_TYPES)[number]
 
-function getFirstValidHelpType(types: string[]): ValidHelpType | null {
-  for (const type of types) {
-    if (VALID_HELP_TYPES.includes(type as ValidHelpType)) {
-      return type as ValidHelpType
-    }
-  }
-  return null
-}
-
 function validateHelpTypes(types: string[]): ValidHelpType[] {
   return types.filter((type) => VALID_HELP_TYPES.includes(type as ValidHelpType)) as ValidHelpType[]
 }
