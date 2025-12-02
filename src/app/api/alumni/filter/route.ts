@@ -18,6 +18,7 @@ interface StrapiFilters {
   }
   metadata?: {
     isPublic?: { $eq: boolean }
+    statusVerification?: { $eq: 'pending' | 'approved' }
   }
 }
 
@@ -157,6 +158,7 @@ export async function GET(request: NextRequest) {
 
     params.append('sort[0]', `${sortField}:${sortOrder}`)
     params.append('filters[metadata][isPublic][$eq]', 'true')
+    params.append('filters[metadata][statusVerification][$eq]', 'approved')
     params.append('sort[1]', 'name:asc')
 
     if (filters.batch) {
@@ -244,6 +246,7 @@ export async function GET(request: NextRequest) {
       },
       metadata: {
         isPublic: true,
+        statusVerification: 'approved',
       },
       createdAt: item.createdAt,
       updatedAt: item.updatedAt,
