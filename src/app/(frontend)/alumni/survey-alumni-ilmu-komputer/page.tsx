@@ -57,6 +57,22 @@ export default function AlumniRegistrationPage() {
   return (
     <div className="min-h-screen py-20 bg-ugm-bg-light">
       <div className="max-w-4xl mx-auto px-4">
+        <button
+          type="button"
+          onClick={() => router.back()}
+          className="mb-6 inline-flex items-center gap-2 rounded-lg border border-ugm-border-subtle bg-ugm-blue px-4 py-2 text-ugm-light font-semibold shadow-sm hover:bg-ugm-blue-soft focus:outline-none focus:ring-2 focus:ring-ugm-blue"
+        >
+          <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 19l-7-7 7-7"
+            />
+          </svg>
+          Kembali
+        </button>
+
         {/* Header */}
         <header className="text-center flex flex-col items-center justify-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-ugm-text-main leading-tight">
