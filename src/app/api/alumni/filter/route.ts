@@ -158,7 +158,7 @@ export async function GET(request: NextRequest) {
 
     params.append('sort[0]', `${sortField}:${sortOrder}`)
     params.append('filters[metadata][isPublic][$eq]', 'true')
-    params.append('filters[metadata][statusVerification][$eq]', 'approved')
+    // params.append('filters[metadata][statusVerification][$eq]', 'approved')
     params.append('sort[1]', 'name:asc')
 
     if (filters.batch) {
