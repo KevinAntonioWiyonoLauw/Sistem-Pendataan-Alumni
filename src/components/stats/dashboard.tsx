@@ -2,13 +2,15 @@
 import { useEffect, useState } from 'react'
 
 export default function AlumniDashboard() {
-  const METABASE_SITE_URL = process.env.NEXT_PUBLIC_METABASE_URL
   const [iframeUrl, setIframeUrl] = useState('')
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(false)
 
   useEffect(() => {
     const fetchToken = async () => {
+      const METABASE_SITE_URL =
+        process.env.NEXT_PUBLIC_METABASE_URL || 'https://dashboard.kagamailkomp.id'
+
       try {
         const response = await fetch('/api/metabase/token')
 
@@ -33,7 +35,7 @@ export default function AlumniDashboard() {
     }
 
     fetchToken()
-  }, [METABASE_SITE_URL])
+  }, [])
 
   if (loading) {
     return (
@@ -99,9 +101,7 @@ export default function AlumniDashboard() {
             </svg>
             <div>
               <h2 className="text-2xl font-bold text-white">Statistik Alumni</h2>
-              <p className="text-ugm-light text-sm mt-0.5">
-                Data real-time alumni Ilmu Komputer UGM
-              </p>
+              <p className="text-ugm-light text-sm mt-0.5">Data alumni Ilmu Komputer UGM</p>
             </div>
           </div>
         </div>
