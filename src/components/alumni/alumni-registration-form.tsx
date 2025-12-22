@@ -147,8 +147,8 @@ export default function AlumniRegistrationForm({
 
   const generateBatchOptions = () => {
     const currentYear = new Date().getFullYear()
-    return Array.from({ length: currentYear - 1986 }, (_, i) => {
-      const year = currentYear - i
+    return Array.from({ length: currentYear - 1971 }, (_, i) => {
+      const year = (currentYear-2) - i
       return { value: year.toString(), label: `Angkatan ${year}` }
     })
   }
