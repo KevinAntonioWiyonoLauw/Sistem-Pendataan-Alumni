@@ -7,7 +7,7 @@ const PROTECTED_ADMIN_ROUTES = [
   // Add more custom admin routes here
 ]
 
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Skip middleware for static files and API routes

@@ -27,10 +27,10 @@
     "googleapis": "^162.0.0",
     "jsonwebtoken": "^9.0.2",
     "lucide-react": "^0.554.0",
-    "next": "15.4.4",
-    "react": "19.1.0",
+    "next": "16.1.0",
+    "react": "19.2.3",
     "react-circle-flags": "^0.0.24",
-    "react-dom": "19.1.0",
+    "react-dom": "19.2.3",
     "tailwind-merge": "^3.3.1"
   },
   "devDependencies": {
@@ -39,12 +39,12 @@
     "@tailwindcss/postcss": "^4.1.17",
     "@types/jsonwebtoken": "^9.0.10",
     "@types/node": "^22.5.4",
-    "@types/react": "19.1.8",
-    "@types/react-dom": "19.1.6",
+    "@types/react": "19.2.7",
+    "@types/react-dom": "19.2.3",
     "@vitejs/plugin-react": "4.5.2",
     "dotenv": "^17.2.3",
     "eslint": "^9.16.0",
-    "eslint-config-next": "15.4.4",
+    "eslint-config-next": "16.1.0",
     "jsdom": "26.1.0",
     "playwright": "1.54.1",
     "playwright-core": "1.54.1",
@@ -61,5 +61,11 @@
   "engines": {
     "node": "^18.20.2 || >=20.9.0",
     "pnpm": "^9 || ^10"
+  },
+  "pnpm": {
+    "overrides": {
+      "@types/react": "19.2.7",
+      "@types/react-dom": "19.2.3"
+    }
   }
 }

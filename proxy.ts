@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 
 // Middleware tidak diperlukan untuk Strapi karena admin panel di-handle oleh Strapi sendiri
 // Redirect ke Strapi admin jika user mengakses /admin
-export function middleware(request: NextRequest) {
+export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl
 
   // Redirect /admin ke Strapi admin panel
