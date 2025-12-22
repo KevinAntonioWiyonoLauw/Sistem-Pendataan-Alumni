@@ -100,7 +100,7 @@ export default function AlumniRegistrationForm({
     if (!formData.currentEmployer.trim()) newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
     if (!formData.position.trim()) newErrors.position = 'Posisi/jabatan wajib diisi'
     if (formData.workField.length === 0) newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
-    if (formData.batch < 1987 || formData.batch > new Date().getFullYear())
+    if (formData.batch < 1970 || formData.batch > new Date().getFullYear())
       newErrors.batch = 'Tahun masuk tidak valid'
 
     if (isOtherSelected && !workFieldOtherInput.trim()) {
@@ -148,7 +148,7 @@ export default function AlumniRegistrationForm({
   const generateBatchOptions = () => {
     const currentYear = new Date().getFullYear()
     return Array.from({ length: currentYear - 1971 }, (_, i) => {
-      const year = (currentYear-2) - i
+      const year = currentYear - 2 - i
       return { value: year.toString(), label: `Angkatan ${year}` }
     })
   }
