@@ -1,5 +1,5 @@
-# Use node:18-alpine as the base image for both development and production stages
-FROM node:18-alpine AS builder
+# Use node:20-alpine as the base image for both development and production stages
+FROM node:20-alpine AS builder
 
 # Builder stage
 # Install pnpm globally and add libc6-compat for Next.js compatibility on Alpine
@@ -19,7 +19,7 @@ COPY . .
 RUN pnpm build
 
 # Final production image
-FROM node:18-alpine AS runner
+FROM node:20-alpine AS runner
 WORKDIR /app
 
 # Additional environment variables
