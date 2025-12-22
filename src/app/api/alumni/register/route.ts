@@ -109,9 +109,9 @@ export async function POST(request: NextRequest) {
     }
 
     const currentYear = new Date().getFullYear()
-    if (data.batch < 1987 || data.batch > currentYear) {
+    if (data.batch < 1970 || data.batch > currentYear) {
       return NextResponse.json(
-        { error: `Angkatan harus antara 1987 - ${currentYear}` },
+        { error: `Angkatan harus antara 1970 - ${currentYear}` },
         { status: 400 },
       )
     }
