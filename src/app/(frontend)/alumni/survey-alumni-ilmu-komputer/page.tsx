@@ -76,7 +76,7 @@ export default function AlumniRegistrationPage() {
         {/* Header */}
         <header className="text-center flex flex-col items-center justify-center mb-12">
           <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 text-ugm-text-main leading-tight">
-            Survey Alumni Ilmu Komputer UGM
+            Pendataan Alumni Ilmu Komputer UGM
           </h1>
         </header>
 
@@ -184,7 +184,7 @@ export default function AlumniRegistrationPage() {
         {/* Form Container */}
         <main className="border rounded-2xl p-6 md:p-8 border-ugm-border-subtle bg-white shadow-sm">
           <h2 className="text-xl md:text-2xl lg:text-3xl font-bold text-ugm-text-main mb-8 pb-6">
-            Formulir Survey Alumni
+            Formulir Pendataan Alumni
           </h2>
 
           <AlumniRegistrationForm onSubmit={handleSubmit} isSubmitting={isSubmitting} />

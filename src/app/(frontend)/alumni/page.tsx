@@ -218,16 +218,16 @@ export default function AlumniDirectoryPage() {
           </div>
         </div>
 
-        {/* CTA Survey */}
+        {/* CTA Pendataan */}
         <div className="mb-8 rounded-xl p-8 border-2 border-ugm-blue shadow-xl bg-ugm-blue-soft flex flex-col items-center justify-center text-center">
           <h3 className="text-2xl font-bold text-ugm-light mb-3">
             Belum Terdaftar di Direktori Alumni?
           </h3>
           <p className="text-blue-50 text-base mb-6 max-w-2xl">
-            Isi survey untuk bergabung dengan jaringan alumni Ilmu Komputer UGM
+            Isi pendataan untuk bergabung dengan jaringan alumni Ilmu Komputer UGM
           </p>
           <Link
-            href="/alumni/survey-alumni-ilmu-komputer"
+            href="/alumni/pendataan-alumni-ilmu-komputer"
             className="inline-flex items-center mt-2 px-8 py-3.5 bg-white hover:bg-gray-50 text-ugm-blue font-bold rounded-lg transition-all duration-200 shadow-lg hover:shadow-xl hover:scale-105 focus:outline-none focus:ring-4 focus:ring-white focus:ring-offset-2 focus:ring-offset-blue-700"
           >
             <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -238,7 +238,7 @@ export default function AlumniDirectoryPage() {
                 d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
               />
             </svg>
-            Isi Survey Sekarang
+            Isi Pendataan Sekarang
           </Link>
         </div>
 

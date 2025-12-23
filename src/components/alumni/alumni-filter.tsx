@@ -108,9 +108,9 @@ export default function AlumniFilter({
           <h3 className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-linear-to-r from-cyan-400 via-blue-400 to-purple-400">
             Filter Alumni
           </h3>
-          <Link href="/alumni/survey-alumni-ilmu-komputer">
+          <Link href="/alumni/pendataan-alumni-ilmu-komputer">
             <button className="px-5 py-2.5 bg-linear-to-r from-cyan-500 to-blue-500 text-ugm-muted rounded-lg shadow-md hover:shadow-lg hover:from-cyan-400 hover:to-blue-400 transition-all duration-200">
-              + Isi Survey Alumni
+              + Isi Pendataan Alumni
             </button>
           </Link>
         </div>
