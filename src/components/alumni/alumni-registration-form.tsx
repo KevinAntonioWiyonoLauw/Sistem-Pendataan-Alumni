@@ -43,7 +43,8 @@ export default function AlumniRegistrationForm({
 }: AlumniRegistrationFormProps) {
   const [formData, setFormData] = useState<AlumniFormData>({
     name: '',
-    batch: new Date().getFullYear(),
+    // 0 berarti "belum dipilih" (akan divalidasi sebelum submit)
+    batch: 0,
     email: '',
     phone: '',
     city: '',
@@ -100,8 +101,11 @@ export default function AlumniRegistrationForm({
     if (!formData.currentEmployer.trim()) newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
     if (!formData.position.trim()) newErrors.position = 'Posisi/jabatan wajib diisi'
     if (formData.workField.length === 0) newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
-    if (formData.batch < 1970 || formData.batch > new Date().getFullYear() - 2)
+    if (!formData.batch) {
+      newErrors.batch = 'Angkatan wajib dipilih'
+    } else if (formData.batch < 1970 || formData.batch > new Date().getFullYear() - 2) {
       newErrors.batch = 'Tahun masuk tidak valid'
+    }
 
     if (isOtherSelected && !workFieldOtherInput.trim()) {
       newErrors.workFieldOther = 'Mohon jelaskan bidang pekerjaan lainnya'
@@ -184,9 +188,9 @@ export default function AlumniRegistrationForm({
             <FormSelect
               label="Tahun Masuk (Angkatan)"
               name="batch"
-              value={formData.batch.toString()}
-              onChange={(name, value) => handleInputChange(name, parseInt(value))}
-              options={generateBatchOptions()}
+              value={formData.batch ? formData.batch.toString() : ''}
+              onChange={(name, value) => handleInputChange(name, value ? parseInt(value, 10) : 0)}
+              options={[{ value: '', label: 'Pilih angkatan' }, ...generateBatchOptions()]}
               error={errors.batch}
               required
             />
