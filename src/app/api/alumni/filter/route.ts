@@ -41,18 +41,18 @@ interface StrapiAlumniItem {
     workField?: string
     position?: string
   }
-  jejaring?: {
-    contactPersonReady?: string
-    alumniOfficerReady?: string
-    otherContacts?: string
-  }
-  kontribusi?: {
-    willingToHelp?: string
-    helpTopics?: string
-  }
-  lainnya?: {
-    suggestions?: string
-  }
+  // jejaring?: {
+  //   contactPersonReady?: string
+  //   alumniOfficerReady?: string
+  //   otherContacts?: string
+  // }
+  // kontribusi?: {
+  //   willingToHelp?: string
+  //   helpTopics?: string
+  // }
+  // lainnya?: {
+  //   suggestions?: string
+  // }
   createdAt: string
   updatedAt: string
 }
@@ -232,18 +232,18 @@ export async function GET(request: NextRequest) {
         workField: normalizeCapitalization(item.pekerjaan?.workField) || '',
         position: item.pekerjaan?.position || '',
       },
-      jejaring: {
-        contactPersonReady: item.jejaring?.contactPersonReady || 'tidak',
-        alumniOfficerReady: item.jejaring?.alumniOfficerReady || 'tidak',
-        otherContacts: item.jejaring?.otherContacts || '',
-      },
-      kontribusi: {
-        willingToHelp: item.kontribusi?.willingToHelp || '',
-        helpTopics: item.kontribusi?.helpTopics || '',
-      },
-      lainnya: {
-        suggestions: item.lainnya?.suggestions || '',
-      },
+      // jejaring: {
+      //   contactPersonReady: item.jejaring?.contactPersonReady || 'tidak',
+      //   alumniOfficerReady: item.jejaring?.alumniOfficerReady || 'tidak',
+      //   otherContacts: item.jejaring?.otherContacts || '',
+      // },
+      // kontribusi: {
+      //   willingToHelp: item.kontribusi?.willingToHelp || '',
+      //   helpTopics: item.kontribusi?.helpTopics || '',
+      // },
+      // lainnya: {
+      //   suggestions: item.lainnya?.suggestions || '',
+      // },
       metadata: {
         isPublic: true,
         statusVerification: 'approved',
