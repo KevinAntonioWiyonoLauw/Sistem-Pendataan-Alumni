@@ -100,7 +100,7 @@ export default function AlumniRegistrationForm({
     if (!formData.currentEmployer.trim()) newErrors.currentEmployer = 'Nama perusahaan wajib diisi'
     if (!formData.position.trim()) newErrors.position = 'Posisi/jabatan wajib diisi'
     if (formData.workField.length === 0) newErrors.workField = 'Pilih minimal satu bidang pekerjaan'
-    if (formData.batch < 1970 || formData.batch > new Date().getFullYear())
+    if (formData.batch < 1970 || formData.batch > new Date().getFullYear() - 2)
       newErrors.batch = 'Tahun masuk tidak valid'
 
     if (isOtherSelected && !workFieldOtherInput.trim()) {

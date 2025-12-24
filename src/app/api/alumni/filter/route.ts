@@ -28,8 +28,8 @@ interface StrapiAlumniItem {
   name?: string
   batch?: number
   kontak?: {
-    email?: string
-    phone?: string
+    // email?: string
+    // phone?: string
     linkedin?: string
     location?: {
       city?: string
@@ -219,8 +219,8 @@ export async function GET(request: NextRequest) {
       name: item.name || '',
       batch: item.batch || 0,
       kontak: {
-        email: item.kontak?.email || '',
-        phone: item.kontak?.phone || '',
+        // email: item.kontak?.email || '',
+        // phone: item.kontak?.phone || '',
         linkedin: item.kontak?.linkedin || '',
         location: {
           city: item.kontak?.location?.city || '',
@@ -228,9 +228,9 @@ export async function GET(request: NextRequest) {
         },
       },
       pekerjaan: {
-        currentEmployer: normalizeCapitalization(item.pekerjaan?.currentEmployer) || '',
+        currentEmployer: item.pekerjaan?.currentEmployer || '',
         workField: normalizeCapitalization(item.pekerjaan?.workField) || '',
-        position: normalizeCapitalization(item.pekerjaan?.position) || '',
+        position: item.pekerjaan?.position || '',
       },
       jejaring: {
         contactPersonReady: item.jejaring?.contactPersonReady || 'tidak',
