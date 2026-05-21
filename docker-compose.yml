@@ -12,6 +12,7 @@ services:
       - NODE_ENV=production
       - PORT=3000
       - HOSTNAME=0.0.0.0
+      - REDIS_URL=redis://redis:6379
     ports:
       - "3000:3000"
     volumes:
@@ -19,11 +20,27 @@ services:
       - web-alumni-data:/app/data
     networks:
       - proxy_net
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:7-alpine
+    container_name: web-alumni-redis
+    restart: unless-stopped
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    networks:
+      - proxy_net
+    command: redis-server --appendonly yes --maxmemory 256mb --maxmemory-policy allkeys-lru
 
 volumes:
   web-alumni-cache:
     driver: local
   web-alumni-data:
+    driver: local
+  redis-data:
     driver: local
 
 networks:
